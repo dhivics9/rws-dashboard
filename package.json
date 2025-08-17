@@ -1,0 +1,21 @@
+{
+    "$schema": "https://json.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite",
+        "watch": "mix watch"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.1.12",
+        "axios": "^1.11.0",
+        "browser-sync": "^2.29.3",
+        "browser-sync-webpack-plugin": "^2.0.1",
+        "concurrently": "^9.0.1",
+        "laravel-mix": "^6.0.49",
+        "laravel-vite-plugin": "^2.0.0",
+        "tailwindcss": "^4.1.12",
+        "vite": "^7.0.4"
+    }
+}
