@@ -242,7 +242,7 @@
                 });
 
                 // Opsional: redirect ke halaman tanpa filter
-                // window.location.href = window.location.pathname;
+                window.location.href = window.location.pathname;
             });
 
             // ====== Update Judul (Opsional) ======
