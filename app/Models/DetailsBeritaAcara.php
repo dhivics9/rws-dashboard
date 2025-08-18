@@ -10,7 +10,7 @@ class DetailsBeritaAcara extends Model
     protected $table = 'details_berita_acara';
 
     // Primary key
-    protected $primaryKey = 'detail';
+    protected $primaryKey = 'id'; // ← ganti dari 'detail'
 
     // Nonaktifkan timestamps
     public $timestamps = false;

@@ -3,7 +3,10 @@
 @section('content')
 
     <h1 class="text-2xl font-bold text-gray-900 mb-8">Status NCX</h1>
+
+    <!-- Container Flex Utama -->
     @include('atoms.filter_ncx')
+
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-xl font-bold text-gray-800">Status NCX - {{ str_replace('-', '/', $selectedPeriod) }}</h1>
@@ -69,6 +72,7 @@
             </tbody>
         </table>
     </div>
+
 
     <script>
         // Ambil periode dari PHP untuk nama file

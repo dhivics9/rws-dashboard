@@ -39,6 +39,10 @@
                     class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
                     Target Revenue Table
                 </a>
+                <a href="/target-analytics/import"
+                    class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
+                    Import Data
+                </a>
             </div>
         </div>
 
@@ -104,7 +108,7 @@
         </div>
 
         <!-- Berkas Dokumen -->
-        <a href="/dokumen"
+        <a href="/documents"
             class="nav-link flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
             <i class="fas fa-file-alt mr-3"></i>
             Berkas Dokumen

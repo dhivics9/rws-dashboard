@@ -15,6 +15,10 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'aliases' => [
+        // ...
+        'Excel' => Maatwebsite\Excel\Facades\Excel::class,
+    ],
     /*
     |--------------------------------------------------------------------------
     | Application Environment

@@ -24,6 +24,7 @@ class DocumentDetail extends Model
     ];
 
     // Relasi ke tabel documents (asumsi ada tabel documents dengan primary key id)
+    // app/Models/DocumentDetail.php
     public function document()
     {
         return $this->belongsTo(Document::class);
@@ -32,5 +33,10 @@ class DocumentDetail extends Model
     public function beritaAcara()
     {
         return $this->hasOne(DetailsBeritaAcara::class);
+    }
+
+   public function resignLetter()
+    {
+        return $this->hasOne(DetailsResignLetter::class, 'document_detail_id', 'id');
     }
 }

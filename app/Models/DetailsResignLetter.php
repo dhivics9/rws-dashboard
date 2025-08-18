@@ -10,7 +10,7 @@ class DetailsResignLetter extends Model
     protected $table = 'details_resign_letter';
 
     // Primary key
-    protected $primaryKey = 'detail';
+    protected $primaryKey = 'id'; // ← ganti dari 'detail'
 
     // Nonaktifkan timestamps
     public $timestamps = false;

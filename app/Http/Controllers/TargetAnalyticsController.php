@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\TargetsOgd;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redirect;
 
 class TargetAnalyticsController extends Controller
 {
@@ -235,7 +237,8 @@ class TargetAnalyticsController extends Controller
         return view("target_analytics.product_summary", compact("selectedPeriod", "filterOptions", "report"));
     }
 
-    public function revenueTable(Request $request){
+    public function revenueTable(Request $request)
+    {
         // Ambil periode dari query, atau gunakan bulan ini sebagai default
         $periode = $request->query('periode');
 
@@ -250,5 +253,100 @@ class TargetAnalyticsController extends Controller
         $filterOptions = filterOptions($request);
 
         return view("target_analytics.revenue_table", compact('selectedPeriod', 'filterOptions'));
+    }
+
+    public function getImport()
+    {
+        return view('target_analytics.import');
+    }
+
+    public function postImport(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:csv,txt|max:10240'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Kosongkan tabel lama
+            TargetsOgd::truncate();
+
+            $file = $request->file('file');
+            $path = $file->getRealPath();
+
+            // Baca file CSV
+            $file = fopen($path, 'r');
+            $header = fgetcsv($file); // Lewati baris header
+
+            $importedCount = 0;
+
+            while (($row = fgetcsv($file)) !== false) {
+                // Skip empty rows
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                // Mapping kolom sesuai struktur file Anda
+                $data = [
+                    'regional'      => $this->cleanData($row[0] ?? ''),
+                    'witel'        => $this->cleanData($row[0] ?? ''), // Sama dengan regional
+                    'lccd'         => $this->cleanData($row[1] ?? ''),
+                    'stream'       => $this->cleanData($row[2] ?? ''),
+                    'product_name' => $this->cleanProductName($row[3] ?? ''),
+                    'gl_account'   => $this->cleanData($row[5] ?? ''),
+                    'bp_number'    => $this->cleanData($row[6] ?? ''),
+                    'customer_name' => $this->cleanData($row[7] ?? ''),
+                    'customer_type' => $this->cleanData($row[8] ?? ''),
+                    'target'       => $this->parseNumber($row[9] ?? 0),
+                    'revenue'      => $this->parseNumber($row[10] ?? 0),
+                    'periode'      => (int)$this->cleanData($row[11] ?? date('Ym')),
+                    'target_rkapp' => $this->parseNumber($row[13] ?? $row[9] ?? 0),
+                ];
+
+                TargetsOgd::create($data);
+                $importedCount++;
+            }
+
+            fclose($file);
+            DB::commit();
+
+            return back()->with('success', "Berhasil mengimport $importedCount data!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Helper functions untuk cleaning data
+     */
+    private function cleanData($value)
+    {
+        $value = trim($value);
+        $value = str_replace(['"', "'"], '', $value); // Hapus tanda kutip
+        return $value === '' ? null : $value;
+    }
+
+    private function cleanProductName($value)
+    {
+        $value = $this->cleanData($value);
+        $value = str_replace(['[', ']'], '', $value); // Hapus kurung siku
+        return $value;
+    }
+
+    private function parseNumber($value)
+    {
+        // Handle scientific notation (1.1E+08)
+        if (is_numeric($value)) {
+            return (float)$value;
+        }
+
+        // Handle angka dengan pemisah ribuan (1,000,000)
+        $cleaned = str_replace(['.', ','], ['', '.'], $value);
+
+        // Hapus karakter non-numerik kecuali titik dan minus
+        $cleaned = preg_replace('/[^0-9.-]/', '', $cleaned);
+
+        return (float)$cleaned;
     }
 }
