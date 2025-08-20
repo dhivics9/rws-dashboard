@@ -6,22 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetailsBeritaAcara extends Model
 {
-    // Nama tabel
     protected $table = 'details_berita_acara';
-
-    // Primary key
-    protected $primaryKey = 'id'; // ← ganti dari 'detail'
-
-    // Nonaktifkan timestamps
+    protected $primaryKey = 'id';
     public $timestamps = false;
+    protected $guarded = ['id'];
 
-    // Kolom yang DILARANG diisi secara massal
-    protected $guarded = [
-        'detail' // Cegah pengisian primary key
-    ];
-
-    // Optional: casting untuk tanggal
-    protected $casts = [
-        'tanggal_mulai' => 'date',
-    ];
+    // Relasi ke DocumentDetail
+    public function documentDetail()
+    {
+        return $this->belongsTo(DocumentDetail::class, 'document_detail_id', 'id');
+    }
 }

@@ -31,5 +31,10 @@ Route::prefix('ncx')->group(function () {
     Route::get('/ncx-status', [NcxController::class, 'ncxStatus']);
 });
 
-Route::resource('documents', DocumentController::class);
+Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
 Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('documents.show');
+Route::get('/documents/{slug}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
+Route::put('/documents/{slug}', [DocumentController::class, 'update'])->name('documents.update');
+Route::delete('/documents/{id}', [DocumentController::class, 'destroy'])->name('documents.destroy');

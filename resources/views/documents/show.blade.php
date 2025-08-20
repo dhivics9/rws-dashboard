@@ -18,42 +18,51 @@
             </div>
 
             <!-- Detail Spesifik -->
-            @if ($document->documentDetail->document_type === 'Berita Acara')
-                <div class="bg-blue-50 p-5 rounded-lg border border-blue-200 mb-6">
-                    <h3 class="text-lg font-semibold text-blue-800 mb-4">Detail Berita Acara</h3>
-                    <dl class="grid grid-cols-1 gap-y-3">
-                        <div><strong>Nama Pelanggan:</strong> {{ $document->documentDetail->beritaAcara->nama_pelanggan }}
-                        </div>
-                        <div><strong>Lokasi Kerja:</strong> {{ $document->documentDetail->beritaAcara->lokasi_kerja }}</div>
-                        <div><strong>Jenis Layanan:</strong> {{ $document->documentDetail->beritaAcara->jenis_layanan }}
-                        </div>
-                        <div><strong>MO:</strong> {{ $document->documentDetail->beritaAcara->mo }}</div>
-                        <div><strong>SID:</strong> {{ $document->documentDetail->beritaAcara->sid }}</div>
-                        <div><strong>Bandwidth Sebelumnya:</strong> {{ $document->documentDetail->beritaAcara->bw_prev }}
-                        </div>
-                        <div><strong>Bandwidth Baru:</strong> {{ $document->documentDetail->beritaAcara->bw_new }}</div>
-                        <div><strong>Tanggal Mulai:</strong> {{ $document->documentDetail->beritaAcara->tanggal_mulai }}
-                        </div>
-                    </dl>
-                </div>
-            @elseif ($document->documentDetail->document_type === 'Resignation Letter')
-                <div class="bg-yellow-50 p-5 rounded-lg border border-yellow-200 mb-6">
-                    <h3 class="text-lg font-semibold text-yellow-800 mb-4">Detail Resignation Letter</h3>
-                    <dl class="grid grid-cols-1 gap-y-3">
-                        <div><strong>Employee Name:</strong> {{ $document->documentDetail->resignLetter->employee_name }}
-                        </div>
-                        <div><strong>Employee ID:</strong> {{ $document->documentDetail->resignLetter->employee_id }}</div>
-                        <div><strong>Last Day of Work:</strong>
-                            {{ $document->documentDetail->resignLetter->last_day_of_work }}</div>
-                        <div><strong>Reason:</strong> {{ $document->documentDetail->resignLetter->reason ?? '-' }}</div>
-                    </dl>
-                </div>
+            @if ($document->documentDetail)
+                @if ($document->documentDetail->document_type === 'Berita Acara' && $document->documentDetail->beritaAcara)
+                    <div class="bg-blue-50 p-5 rounded-lg border border-blue-200 mb-6">
+                        <h3 class="text-lg font-semibold text-blue-800 mb-4">Detail Berita Acara</h3>
+                        <dl class="grid grid-cols-1 gap-y-3">
+                            <div><strong>Nama Pelanggan:</strong>
+                                {{ $document->documentDetail->beritaAcara->nama_pelanggan }}</div>
+                            <div><strong>Lokasi Kerja:</strong>
+                                {{ $document->documentDetail->beritaAcara->lokasi_kerja }}</div>
+                            <div><strong>Jenis Layanan:</strong>
+                                {{ $document->documentDetail->beritaAcara->jenis_layanan }}</div>
+                            <div><strong>MO:</strong>
+                                {{ $document->documentDetail->beritaAcara->mo }}</div>
+                            <div><strong>SID:</strong>
+                                {{ $document->documentDetail->beritaAcara->sid }}</div>
+                            <div><strong>BW Prev:</strong>
+                                {{ $document->documentDetail->beritaAcara->bw_prev }}</div>
+                            <div><strong>BW New:</strong>
+                                {{ $document->documentDetail->beritaAcara->bw_new }}</div>
+                            <div><strong>Tanggal Mulai:</strong>
+                                {{ $document->documentDetail->beritaAcara->tanggal_mulai }}</div>
+                        </dl>
+                    </div>
+                @elseif ($document->documentDetail->document_type === 'Resignation Letter' && $document->documentDetail->resignLetter)
+                    <div class="bg-yellow-50 p-5 rounded-lg border border-yellow-200 mb-6">
+                        <h3 class="text-lg font-semibold text-yellow-800 mb-4">Detail Resignation Letter</h3>
+                        <dl class="grid grid-cols-1 gap-y-3">
+                            <div><strong>Employee Name:</strong>
+                                {{ $document->documentDetail->resignLetter->employee_name }}</div>
+                            <div><strong>Employee ID:</strong>
+                                {{ $document->documentDetail->resignLetter->employee_id }}</div>
+                            <div><strong>Last Day of Work:</strong>
+                                {{ $document->documentDetail->resignLetter->last_day_of_work }}</div>
+                            <div><strong>Reason:</strong>
+                                {{ $document->documentDetail->resignLetter->reason ?? '-' }}</div>
+                        </dl>
+                    </div>
+                @else
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">General Document</h3>
+                        <p>This is a general document with no specific details.</p>
+                    </div>
+                @endif
             @else
-                <div class="bg-gray-50 p-5 rounded-lg border border-gray-200 mb-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">General Document</h3>
-                    <p>This is a general document with no specific details. Please refer to the description and the file
-                        preview.</p>
-                </div>
+                <p>No document details found.</p>
             @endif
 
             <!-- Download Button -->
@@ -74,12 +83,14 @@
             <div class="bg-white p-5 rounded-lg shadow">
                 <h3 class="text-lg font-medium mb-4">File Preview</h3>
                 @if (pathinfo($document->file_name, PATHINFO_EXTENSION) === 'pdf')
-                    <iframe src="{{ Storage::url($document->file_path) }}" width="100%" height="600"
+                    <iframe src="{{ asset('storage/' . $document->file_path) }}" width="100%" height="600"
                         style="border: none; border-radius: 8px;" title="PDF Preview"></iframe>
                 @else
-                    <pre class="bg-gray-900 text-green-400 p-4 rounded-md overflow-auto max-h-96">
-{{ file_get_contents(storage_path('app/public/' . $document->file_path)) }}
-                </pre>
+                    @php
+                        $filePath = public_path('storage/' . $document->file_path);
+                        $fileContent = file_exists($filePath) ? file_get_contents($filePath) : 'File not found';
+                    @endphp
+                    <pre class="bg-gray-900 text-green-400 p-4 rounded-md overflow-auto max-h-96">{{ $fileContent }}</pre>
                 @endif
             </div>
         </div>

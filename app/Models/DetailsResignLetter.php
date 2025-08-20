@@ -6,20 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class DetailsResignLetter extends Model
 {
-    // Nama tabel
     protected $table = 'details_resign_letter';
-
-    // Primary key
-    protected $primaryKey = 'id'; // ← ganti dari 'detail'
-
-    // Nonaktifkan timestamps
+    protected $primaryKey = 'id';
     public $timestamps = false;
+    protected $guarded = ['id'];
 
-    // Kolom yang TIDAK boleh diisi massal (gunakan guarded)
-    protected $guarded = ['detail'];
-
-    // Casting tipe data
-    protected $casts = [
-        'last_day_of_work' => 'date',
-    ];
+    // Relasi ke DocumentDetail
+    public function documentDetail()
+    {
+        return $this->belongsTo(DocumentDetail::class, 'document_detail_id', 'id');
+    }
 }

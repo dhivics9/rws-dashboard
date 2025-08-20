@@ -117,7 +117,11 @@ class DocumentController extends Controller
     public function show($slug)
     {
         $document = Document::where('slug', $slug)->firstOrFail();
-        $document->load(['documentDetail', 'documentDetail.beritaAcara', 'documentDetail.resignLetter']);
+
+        // Debug 1: cek document
+
+        // Debug 2: cek relasi documentDetail
+        $detail = $document->documentDetail;
 
         return view('documents.show', compact('document'));
     }
