@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TargetAnalyticsController extends Controller
 {
@@ -263,7 +264,7 @@ class TargetAnalyticsController extends Controller
     public function postImport(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:csv,txt|max:10240'
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240'
         ]);
 
         DB::beginTransaction();
@@ -272,44 +273,43 @@ class TargetAnalyticsController extends Controller
             TargetsOgd::truncate();
 
             $file = $request->file('file');
-            $path = $file->getRealPath();
-
-            // Baca file CSV
-            $file = fopen($path, 'r');
-            $header = fgetcsv($file); // Lewati baris header
-
             $importedCount = 0;
 
-            while (($row = fgetcsv($file)) !== false) {
-                // Skip empty rows
+            // Baca isi excel
+            $rows = Excel::toArray([], $file);
+            // $rows[0] = sheet pertama
+            $dataRows = $rows[0];
+
+            // Buang header (baris pertama)
+            array_shift($dataRows);
+
+            foreach ($dataRows as $row) {
+                // Skip baris kosong
                 if (empty(array_filter($row))) {
                     continue;
                 }
 
-                // Mapping kolom sesuai struktur file Anda
                 $data = [
                     'regional'      => $this->cleanData($row[0] ?? ''),
-                    'witel'        => $this->cleanData($row[0] ?? ''), // Sama dengan regional
-                    'lccd'         => $this->cleanData($row[1] ?? ''),
-                    'stream'       => $this->cleanData($row[2] ?? ''),
-                    'product_name' => $this->cleanProductName($row[3] ?? ''),
-                    'gl_account'   => $this->cleanData($row[5] ?? ''),
-                    'bp_number'    => $this->cleanData($row[6] ?? ''),
+                    'witel'         => $this->cleanData($row[0] ?? ''), // Sama dengan regional
+                    'lccd'          => $this->cleanData($row[1] ?? ''),
+                    'stream'        => $this->cleanData($row[2] ?? ''),
+                    'product_name'  => $this->cleanProductName($row[3] ?? ''),
+                    'gl_account'    => $this->cleanData($row[5] ?? ''),
+                    'bp_number'     => $this->cleanData($row[6] ?? ''),
                     'customer_name' => $this->cleanData($row[7] ?? ''),
                     'customer_type' => $this->cleanData($row[8] ?? ''),
-                    'target'       => $this->parseNumber($row[9] ?? 0),
-                    'revenue'      => $this->parseNumber($row[10] ?? 0),
-                    'periode'      => (int)$this->cleanData($row[11] ?? date('Ym')),
-                    'target_rkapp' => $this->parseNumber($row[13] ?? $row[9] ?? 0),
+                    'target'        => $this->parseNumber($row[9] ?? 0),
+                    'revenue'       => $this->parseNumber($row[10] ?? 0),
+                    'periode'       => (int)$this->cleanData($row[11] ?? date('Ym')),
+                    'target_rkapp'  => $this->parseNumber($row[13] ?? $row[9] ?? 0),
                 ];
 
                 TargetsOgd::create($data);
                 $importedCount++;
             }
 
-            fclose($file);
             DB::commit();
-
             return back()->with('success', "Berhasil mengimport $importedCount data!");
         } catch (\Exception $e) {
             DB::rollBack();

@@ -29,6 +29,10 @@ return [
     | services the application utilizes. Set this in your ".env" file.
     |
     */
+    // 'providers' => [
+    //     // ...
+    //     Maatwebsite\Excel\ExcelServiceProvider::class,
+    // ],
 
     'env' => env('APP_ENV', 'production'),
 

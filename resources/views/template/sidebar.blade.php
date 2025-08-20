@@ -16,7 +16,7 @@
         </a>
 
         <!-- Target Analytics (Dropdown) -->
-        <div class="relative">
+        <div class="relative group">
             <button onclick="toggleDropdown('target-analytics', 'target-arrow')"
                 class="flex items-center justify-between w-full px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
                 <span class="flex items-center">
@@ -26,7 +26,8 @@
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="target-arrow"></i>
             </button>
             <div id="target-analytics"
-                class="mt-1 space-y-1 opacity-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+                class="mt-1 space-y-1 opacity-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out dropdown-content"
+                style="max-height: 0; transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;">
                 <a href="/target-analytics/regional-report"
                     class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
                     Regional Performance
@@ -47,7 +48,7 @@
         </div>
 
         <!-- Revenue Analytics (Dropdown) -->
-        <div class="relative">
+        <div class="relative group">
             <button onclick="toggleDropdown('revenue-analytics', 'revenue-arrow')"
                 class="flex items-center justify-between w-full px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
                 <span class="flex items-center">
@@ -57,7 +58,8 @@
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="revenue-arrow"></i>
             </button>
             <div id="revenue-analytics"
-                class="mt-1 space-y-1 opacity-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+                class="mt-1 space-y-1 opacity-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out dropdown-content"
+                style="max-height: 0; transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;">
                 <a href="/revenue-analytics/revenue-data"
                     class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
                     Revenue Data
@@ -70,6 +72,10 @@
                     class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
                     Forecast Analysis
                 </a>
+                <a href="/revenue-analytics/import"
+                    class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
+                    Import Data
+                </a>
             </div>
         </div>
 
@@ -80,8 +86,8 @@
             Sales Analytics
         </a>
 
-        <!-- NCX Analytics (Dropdown) -->
-        <div class="relative">
+        <!-- NCX Status (Dropdown) -->
+        <div class="relative group">
             <button onclick="toggleDropdown('ncx-status', 'ncx-arrow')"
                 class="flex items-center justify-between w-full px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
                 <span class="flex items-center">
@@ -91,7 +97,8 @@
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="ncx-arrow"></i>
             </button>
             <div id="ncx-status"
-                class="mt-1 space-y-1 opacity-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out">
+                class="mt-1 space-y-1 opacity-0 max-h-0 overflow-hidden transition-all duration-300 ease-in-out dropdown-content"
+                style="max-height: 0; transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;">
                 <a href="/ncx/data"
                     class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
                     NCX Data
@@ -134,28 +141,25 @@
 
 <!-- Script: Toggle Dropdown & Set Active Link -->
 <script>
-    // Toggle Dropdown
     function toggleDropdown(dropdownId, arrowId) {
         const dropdown = document.getElementById(dropdownId);
         const arrow = document.getElementById(arrowId);
 
-        const isOpen = dropdown.classList.contains('opacity-100');
-
-        // Tutup semua dropdown dulu (opsional: agar hanya satu terbuka)
+        // Tutup semua dropdown dulu
         document.querySelectorAll('.dropdown-content').forEach(d => {
             d.classList.add('opacity-0', 'max-h-0');
-            d.classList.remove('opacity-100', 'max-h-96');
+            d.classList.remove('opacity-100', 'max-h-64');
         });
         document.querySelectorAll('.fa-chevron-down').forEach(a => a.classList.remove('rotate-180'));
 
-        if (!isOpen) {
+        // Buka dropdown yang dipilih
+        if (dropdown) {
             dropdown.classList.remove('opacity-0', 'max-h-0');
-            dropdown.classList.add('opacity-100', 'max-h-96');
+            dropdown.classList.add('opacity-100', 'max-h-64');
             arrow?.classList.add('rotate-180');
         }
     }
 
-    // Tandai link aktif berdasarkan URL
     function setActiveLink() {
         const currentPath = window.location.pathname || '/';
         const links = document.querySelectorAll('a.nav-link');
@@ -166,7 +170,6 @@
             link.classList.add('text-gray-300');
         });
 
-        // Cari link yang cocok
         let matchedLink = null;
         links.forEach(link => {
             const href = link.getAttribute('href');
@@ -175,32 +178,29 @@
             }
         });
 
-        // Tandai sebagai aktif
         if (matchedLink) {
             matchedLink.classList.remove('text-gray-300');
             matchedLink.classList.add('bg-emerald-500', 'text-white');
 
-            // Jika berada di dropdown, buka dropdown-nya
+            // Jika ada parent dropdown, buka dropdown itu
             const parentDropdown = matchedLink.closest('.space-y-1');
             if (parentDropdown) {
                 const parentId = parentDropdown.id;
-                const arrow = document.querySelector(`[onclick*="${parentId}"]`);
-                if (arrow) {
+                const button = document.querySelector(`[onclick*="'${parentId}'"]`);
+                if (button) {
                     parentDropdown.classList.remove('opacity-0', 'max-h-0');
-                    parentDropdown.classList.add('opacity-100', 'max-h-96');
-                    const icon = arrow.querySelector('i.fa-chevron-down');
+                    parentDropdown.classList.add('opacity-100', 'max-h-64');
+                    const icon = button.querySelector('i.fa-chevron-down');
                     icon?.classList.add('rotate-180');
                 }
             }
         }
     }
 
-    // Dark Mode (Contoh sederhana)
     function toggleDarkMode() {
         alert("Dark mode toggle (implementasikan sesuai kebutuhan)");
     }
 
-    // Jalankan saat halaman selesai dimuat
     document.addEventListener('DOMContentLoaded', () => {
         // Beri kelas pada dropdown agar mudah dikenali
         document.querySelectorAll('nav > .relative > div').forEach(div => {
