@@ -11,58 +11,121 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     //
-    public function index()
+    public function index(Request $request)
     {
-
         try {
             $currentYear = Carbon::now()->year;
+            $selectedRegional = $request->input('regional', '4'); // Default regional 4
 
-            // Summary Data
-            $targets = TargetsOgd::where('periode', 'like', $currentYear . '%')->get();
+            // Ambil data dari database
+            $targets = TargetsOgd::where('periode', 'like', $currentYear . '%')
+                ->where('regional', $selectedRegional) // ✅ Perbaikan: Hapus 'operator:'
+                ->get(); // Mengembalikan Eloquent Collection
 
-            $summary = [
-                'total_revenue' => $targets->sum('revenue'),
-                'total_target' => $targets->sum('target'),
-                'active_customers' => $targets->unique('customer_name')->count(),
-                'achievement' => $targets->sum('target') > 0
-                    ? ($targets->sum('revenue') / $targets->sum('target')) * 100
-                    : 0
-            ];
-
-            // Trend Data: Group by month (extracted from periode like '202401')
-            $trend = $targets->groupBy(function ($item) {
-                return substr($item->periode, 4, 2); // Ambil bulan: 01, 02, dst
-            })->map(function ($monthlyTargets, $month) {
-                return [
-                    'month' => (int) $month, // Hilangkan leading zero, jadi 1, 2, dst
-                    'monthly_revenue' => (string) $monthlyTargets->sum('revenue') // Pastikan string untuk presisi
+            // Cek apakah $targets benar-benar collection
+            if ($targets->isEmpty()) {
+                $summary = [
+                    'total_revenue' => 0,
+                    'total_target' => 0,
+                    'active_customers' => 0,
+                    'achievement' => 0
                 ];
-            })->values()->sortBy('month')->values(); // Urutkan berdasarkan bulan dan reset key
+                $trend = collect([]);
+            } else {
+                // Summary Data
+                $summary = [
+                    'total_revenue' => $targets->sum('revenue'),
+                    'total_target' => $targets->sum('target'),
+                    'active_customers' => $targets->unique('customer_name')->count(),
+                    'achievement' => $targets->sum('target') > 0
+                        ? ($targets->sum('revenue') / $targets->sum('target')) * 100
+                        : 0
+                ];
 
-            // Top Regionals: Group by regional
-            $topRegionals = $targets->groupBy('regional')
-                ->map(function ($regionalTargets, $regional) {
+                // Group by month using Collection's groupBy with closure
+                $trend = $targets
+                    ->groupBy(fn($item) => substr($item->periode, 4, 2)) // Ambil bulan
+                    ->map(function ($group, $month) {
+                        return [
+                            'month' => (int)$month,
+                            'monthly_revenue' => (string)$group->sum('revenue')
+                        ];
+                    })
+                    ->values()
+                    ->sortBy('month')
+                    ->values();
+            }
+
+            // Available regionals for filter
+            $availableRegionals = TargetsOgd::where('periode', 'like', $currentYear . '%')
+                ->pluck('regional')
+                ->unique()
+                ->sort()
+                ->values();
+
+            // Top 5 Regionals (global, tanpa filter)
+            $topRegionalsGlobal = TargetsOgd::where('periode', 'like', $currentYear . '%')
+                ->get()
+                ->groupBy('regional')
+                ->map(function ($group, $regional) {
                     return [
                         'regional' => $regional,
-                        'total_revenue' => (string) $regionalTargets->sum('revenue')
+                        'total_revenue' => (string)$group->sum('revenue')
                     ];
                 })
                 ->sortByDesc('total_revenue')
                 ->take(5)
-                ->values(); // Reset key agar jadi array numerik
+                ->values();
 
             // Recent Documents
             $recentDocuments = Document::limit(5)->get();
 
             $kpi = [
-                'totalRevenue' => (float) $summary['total_revenue'],
-                'totalTarget' => (float) $summary['total_target'],
-                'activeCustomers' => (int) $summary['active_customers'],
+                'totalRevenue' => (float)$summary['total_revenue'],
+                'totalTarget' => (float)$summary['total_target'],
+                'activeCustomers' => (int)$summary['active_customers'],
                 'achievement' => round($summary['achievement'], 2)
             ];
 
-            return view('home', compact('kpi', 'trend', 'topRegionals', 'recentDocuments'));
+            $witelData = $targets->groupBy('witel')
+                ->map(function ($group) {
+                    return [
+                        'witel' => $group->first()->witel,
+                        'target' => (float)$group->sum('target'),
+                        'revenue' => (float)$group->sum('revenue')
+                    ];
+                })
+                ->values();
+
+            // Urutkan berdasarkan nama witel (opsional)
+            $witelData = $targets->groupBy('witel')
+                ->map(function ($group) {
+                    $witelName = $group->first()->witel ?? 'Tidak Diketahui'; // Jika null, jadi "Tidak Diketahui"
+                    return [
+                        'witel' => $witelName,
+                        'target' => (float)$group->sum('target'),
+                        'revenue' => (float)$group->sum('revenue')
+                    ];
+                })
+                ->sortByDesc('revenue') // Urutkan berdasarkan revenue turun
+                ->take(10)               // Ambil 10 teratas
+                ->values();
+            $maxValue = $witelData->max(fn($item) => max($item['target'], $item['revenue']));
+
+            // dd($maxValue);
+
+            return view('home', compact(
+                'kpi',
+                'witelData',
+                'trend',
+                'topRegionalsGlobal',
+                'recentDocuments',
+                'selectedRegional',
+                'availableRegionals',
+                'maxValue'
+            ));
         } catch (\Exception $err) {
+            // Untuk debugging, kamu bisa log error
             return response()->json(['error' => $err->getMessage()], 500);
         }
     }
