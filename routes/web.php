@@ -23,6 +23,8 @@ Route::prefix('target-analytics')->group(function () {
 Route::prefix('revenue-analytics')->group(function () {
     Route::get('/revenue-data', [RevenueAnalyticsController::class, 'revenueData']);
     Route::get('/product-summary', [TargetAnalyticsController::class, 'productSummary']);
+    Route::get('/import', [RevenueAnalyticsController::class, 'getImport']);
+    Route::post('/import', [RevenueAnalyticsController::class, 'postImport'])->name("revenue-analytics.import");
 });
 
 Route::prefix('ncx')->group(function () {

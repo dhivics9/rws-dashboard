@@ -3,7 +3,7 @@
 @section('content')
     <div class="bg-gray-100 min-h-screen flex items-center justify-center">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4 border border-gray-200">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Import Target OGD</h2>
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Import Target Revenue</h2>
 
             @if (session('success'))
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
@@ -22,7 +22,7 @@
             </p>
 
             <!-- Form Upload -->
-            <form id="import-form" action="{{ route('target-analytics.import') }}" method="POST" enctype="multipart/form-data"
+            <form id="import-form" action="{{ route('revenue-analytics.import') }}" method="POST" enctype="multipart/form-data"
                 class="space-y-4">
                 @csrf
                 <label for="file-upload" class="block cursor-pointer">

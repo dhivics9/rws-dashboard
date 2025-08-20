@@ -291,10 +291,10 @@ class TargetAnalyticsController extends Controller
 
                 $data = [
                     'regional'      => $this->cleanData($row[0] ?? ''),
-                    'witel'         => $this->cleanData($row[0] ?? ''), // Sama dengan regional
-                    'lccd'          => $this->cleanData($row[1] ?? ''),
-                    'stream'        => $this->cleanData($row[2] ?? ''),
-                    'product_name'  => $this->cleanProductName($row[3] ?? ''),
+                    'witel'         => $this->cleanData($row[1] ?? ''), // Sama dengan regional
+                    'lccd'          => $this->cleanData($row[2] ?? ''),
+                    'stream'        => $this->cleanData($row[3] ?? ''),
+                    'product_name'  => $this->cleanProductName($row[4] ?? ''),
                     'gl_account'    => $this->cleanData($row[5] ?? ''),
                     'bp_number'     => $this->cleanData($row[6] ?? ''),
                     'customer_name' => $this->cleanData($row[7] ?? ''),
@@ -302,7 +302,7 @@ class TargetAnalyticsController extends Controller
                     'target'        => $this->parseNumber($row[9] ?? 0),
                     'revenue'       => $this->parseNumber($row[10] ?? 0),
                     'periode'       => (int)$this->cleanData($row[11] ?? date('Ym')),
-                    'target_rkapp'  => $this->parseNumber($row[13] ?? $row[9] ?? 0),
+                    'target_rkapp'  => $this->parseNumber($row[12] ?? 0),
                 ];
 
                 TargetsOgd::create($data);
@@ -336,15 +336,11 @@ class TargetAnalyticsController extends Controller
 
     private function parseNumber($value)
     {
-        // Handle scientific notation (1.1E+08)
         if (is_numeric($value)) {
             return (float)$value;
         }
 
-        // Handle angka dengan pemisah ribuan (1,000,000)
         $cleaned = str_replace(['.', ','], ['', '.'], $value);
-
-        // Hapus karakter non-numerik kecuali titik dan minus
         $cleaned = preg_replace('/[^0-9.-]/', '', $cleaned);
 
         return (float)$cleaned;
