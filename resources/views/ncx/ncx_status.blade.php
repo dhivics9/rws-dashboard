@@ -22,15 +22,15 @@
     <div class="overflow-x-auto">
         <table class="min-w-full border-collapse border border-gray-300 bg-white shadow-sm">
             <thead>
-                <tr class="bg-orange-500 text-white">
-                    <th rowspan="2" class="border border-orange-600 p-3 text-left font-semibold">Layanan</th>
-                    <th colspan="{{ count($statuses) }}" class="border border-orange-600 p-3 text-center font-semibold">
+                <tr class="bg-dark-blue text-white">
+                    <th rowspan="2" class="border border-dark-blue p-3 text-left font-semibold">Layanan</th>
+                    <th colspan="{{ count($statuses) }}" class="border border-dark-blue p-3 text-center font-semibold">
                         Status NCX</th>
-                    <th rowspan="2" class="border border-orange-600 p-3 text-center font-semibold">TOTAL</th>
+                    <th rowspan="2" class="border border-dark-blue p-3 text-center font-semibold">TOTAL</th>
                 </tr>
-                <tr class="bg-orange-500 text-white">
+                <tr class="bg-dark-blue text-white">
                     @foreach ($statuses as $status)
-                        <th class="border border-orange-600 p-2 text-center text-xs">{{ $status }}</th>
+                        <th class="border border-dark-blue p-2 text-center text-xs">{{ $status }}</th>
                     @endforeach
                 </tr>
             </thead>
@@ -59,14 +59,14 @@
 
                 <!-- Total Row -->
                 @if (!empty($totalRow))
-                    <tr class="font-bold bg-blue-100 text-blue-800">
-                        <td class="border border-blue-600 p-3 text-white bg-blue-700 text-center">TOTAL</td>
+                    <tr class="font-bold">
+                        <td class="border border-dark-blue p-3 text-white bg-dark-blue text-center">TOTAL</td>
                         @foreach ($statuses as $status)
-                            <td class="border border-blue-600 p-3 text-center">
+                            <td class="border border-dark-blue p-3 text-center">
                                 {{ $totalRow[$status] > 0 ? $totalRow[$status] : '0' }}
                             </td>
                         @endforeach
-                        <td class="border border-blue-600 p-3 text-center">{{ $grandTotal }}</td>
+                        <td class="border border-dark-blue p-3 text-center">{{ $grandTotal }}</td>
                     </tr>
                 @endif
             </tbody>
@@ -113,7 +113,7 @@
             table { background: white !important; }
             td, th { background: white !important; color: black !important; }
             .hover\\:bg-gray-50:hover { background: white !important; }
-            .bg-blue-100, .bg-blue-700, .bg-orange-500 { background: white !important; color: black !important; }
+            .bg-blue-100, .bg-dark-blue, .bg-dark-blue { background: white !important; color: black !important; }
             .text-blue-700, .text-white { color: black !important; }
             .bg-blue-50 { background: #e0f2fe !important; }
         `;

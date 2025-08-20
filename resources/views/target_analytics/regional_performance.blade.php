@@ -48,7 +48,7 @@
                         {{ $selectedPeriod ?? '2025-08' }}</th>
                 </tr>
                 <tr class="bg-dark-blue text-white text-xs uppercase tracking-wider">
-                    <th class="px-4 py-2 border border-dark-blue text-center">TGT</th>
+                    <th class="px-4 py-2 border  text-center">TGT</th>
                     <th class="px-4 py-2 border border-dark-blue text-center">REAL</th>
                     <th class="px-4 py-2 border border-dark-blue text-center">ACH</th>
                     <th class="px-4 py-2 border border-dark-blue text-center">RANK</th>

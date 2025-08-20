@@ -28,7 +28,9 @@ Route::prefix('revenue-analytics')->group(function () {
 });
 
 Route::prefix('ncx')->group(function () {
-    Route::get('/ncx-status', [NcxController::class, 'ncxStatus']);
+    Route::get('/ncx-status', action: [NcxController::class, 'ncxStatus']);
+    Route::get('/import', [NcxController::class, 'getImport']);
+    Route::post('/import', [NcxController::class, 'postImport'])->name("ncx-status.import");
 });
 
 Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');

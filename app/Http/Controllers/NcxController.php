@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\NcxApi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class NcxController extends Controller
 {
@@ -42,8 +44,8 @@ class NcxController extends Controller
                 'order_created_date',
                 'sa_witel' // pastikan kolom ini ada di model
             ])
-            ->whereYear('order_created_date', $year)
-            ->whereMonth('order_created_date', $month);
+                ->whereYear('order_created_date', $year)
+                ->whereMonth('order_created_date', $month);
 
             if (!empty($witelFilter)) {
                 $query->whereIn('sa_witel', $witelFilter);
@@ -133,7 +135,6 @@ class NcxController extends Controller
                 'witelFilter',
                 'productFilter'
             ));
-
         } catch (\Exception $err) {
             return view('ncx.ncx_status', [
                 'data' => [],
@@ -195,5 +196,146 @@ class NcxController extends Controller
         }
 
         return 'TSQ In Progress';
+    }
+
+    public function getImport()
+    {
+        return view('ncx.import');
+    }
+
+    public function postImport(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Kosongkan tabel lama
+            NcxApi::truncate();
+
+            $file = $request->file('file');
+            $importedCount = 0;
+
+            // Baca isi Excel
+            $rows = Excel::toArray([], $file);
+            $dataRows = $rows[0]; // Ambil sheet pertama
+
+            // Buang header (baris pertama)
+            array_shift($dataRows);
+
+            foreach ($dataRows as $row) {
+                // Skip baris kosong
+                if (empty(array_filter($row))) {
+                    continue;
+                }
+
+                // Mapping data dari Excel ke kolom database
+                $data = [
+                    'li_product_name'             => $this->cleanData($row[0] ?? ''),
+                    'ca_account_name'             => $this->cleanData($row[1] ?? ''),
+                    'order_id'                    => $this->cleanData($row[2] ?? ''),
+                    'li_sid'                      => $this->cleanData($row[3] ?? ''),
+                    'quote_subtype'               => $this->cleanData($row[4] ?? ''),
+                    'sa_x_addr_city'              => $this->cleanData($row[5] ?? ''),
+                    'sa_x_addr_latitude'          => $this->parseDouble($row[6] ?? null),
+                    'sa_x_addr_latitude2'         => $this->parseDouble($row[7] ?? null),
+                    'sa_x_addr_longlitude'        => $this->parseDouble($row[8] ?? null), // typo: longlitude
+                    'sa_x_addr_longlitude2'       => $this->parseDouble($row[9] ?? null),
+                    'billing_type_cd'             => $this->cleanData($row[10] ?? ''),
+                    'price_type_cd'               => $this->cleanData($row[11] ?? ''),
+                    'x_mrc_tot_net_pri'           => $this->parseNumber($row[12] ?? 0),
+                    'x_nrc_tot_net_pri'           => $this->parseNumber($row[13] ?? 0),
+                    'quote_createdby_name'        => $this->cleanData($row[14] ?? ''),
+                    'agree_num'                   => $this->cleanData($row[15] ?? ''),
+                    'agree_type'                  => $this->cleanData($row[16] ?? ''),
+                    'agree_end_date'              => $this->parseDateTime($row[17] ?? null),
+                    'agree_status'                => $this->cleanData($row[18] ?? ''),
+                    'li_milestone'                => $this->cleanData($row[19] ?? ''),
+                    'order_created_date'          => $this->parseDateTime($row[20] ?? null),
+                    'sa_witel'                    => $this->cleanData($row[21] ?? ''),
+                    'sa_account_status'           => $this->cleanData($row[22] ?? ''),
+                    'sa_account_address_name'     => $this->cleanData($row[23] ?? ''),
+                    'billing_activation_date'     => $this->parseDateTime($row[24] ?? null),
+                    'billing_activation_status'   => $this->cleanData($row[25] ?? ''),
+                    'billcomp_date'               => $this->parseDateTime($row[26] ?? null),
+                    'li_milestone_date'           => $this->parseDateTime($row[27] ?? null),
+                    'witel'                       => $this->cleanData($row[28] ?? ''),
+                    'bw'                          => $this->cleanData($row[29] ?? ''),
+                ];
+
+                NcxApi::create($data);
+                $importedCount++;
+            }
+
+            DB::commit();
+            return back()->with('success', "Berhasil mengimport $importedCount data ke tabel ncx_api!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal import: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Helper functions untuk cleaning data
+     */
+    private function cleanData($value)
+    {
+        $value = trim($value);
+        $value = str_replace(['"', "'"], '', $value); // Hapus tanda kutip
+        return $value === '' ? null : $value;
+    }
+
+    private function cleanProductName($value)
+    {
+        $value = $this->cleanData($value);
+        $value = str_replace(['[', ']'], '', $value); // Hapus kurung siku
+        return $value;
+    }
+
+    private function parseNumber($value)
+    {
+        if (is_numeric($value)) {
+            return (float)$value;
+        }
+
+        $cleaned = str_replace(['.', ','], ['', '.'], $value);
+        $cleaned = preg_replace('/[^0-9.-]/', '', $cleaned);
+
+        return (float)$cleaned;
+    }
+
+    private function parseDouble($value)
+    {
+        if ($value === null || $value === '' || !is_numeric($value)) {
+            return null;
+        }
+        return (float)$value;
+    }
+
+    private function parseDateTime($value)
+    {
+        if (!$value) {
+            return null;
+        }
+
+        try {
+            // Jika string, coba parse sebagai ISO 8601
+            $date = \DateTime::createFromFormat('Y-m-d\TH:i:s.u\Z', $value);
+            if ($date) {
+                return $date->format('Y-m-d H:i:s');
+            }
+
+            // Atau coba format lain
+            $date = \DateTime::createFromFormat('Y-m-d H:i:s', $value);
+            if ($date) {
+                return $date->format('Y-m-d H:i:s');
+            }
+
+            // Jika gagal, coba lewat Carbon
+            return now()->parse($value)->format('Y-m-d H:i:s');
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 }
