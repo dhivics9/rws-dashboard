@@ -37,10 +37,33 @@ Route::prefix('ncx')->group(function () {
 });
 
 
-Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
-Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
-Route::get('/documents/{slug}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
-Route::put('/documents/{slug}', [DocumentController::class, 'update'])->name('documents.update');
-Route::delete('/documents/{id}', [DocumentController::class, 'destroy'])->name('documents.destroy');
-Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
-Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('documents.show');
+// Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+// Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+// Route::get('/documents/{slug}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
+// Route::put('/documents/{slug}', [DocumentController::class, 'update'])->name('documents.update');
+// Route::delete('/documents/{id}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+// Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+// Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('documents.show');
+
+// Admin only routes
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/register', [AuthController::class, 'registerAuth'])->name('register.form');
+    Route::post('/admin/register', [AuthController::class, 'registerProcess'])->name('register.process');
+    // Tambahan route admin lainnya
+});
+
+// Inputter routes (CRUD operations)
+Route::middleware(['auth', 'role:inputter,admin'])->group(function () {
+    Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{slug}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
+    Route::put('/documents/{slug}', [DocumentController::class, 'update'])->name('documents.update');
+    Route::delete('/documents/{id}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+});
+
+// General user routes (view only)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('documents.show');
+});

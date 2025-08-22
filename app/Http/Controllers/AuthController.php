@@ -34,18 +34,29 @@ class AuthController extends Controller
     }
 
     // Tampilkan form register
+    // Tampilkan form register - HANYA ADMIN yang bisa akses
     public function registerAuth()
     {
-        return view('auth.register');
+        // Cek jika user adalah admin
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            return view('auth.register');
+        }
+
+        abort(403, 'Unauthorized access');
     }
 
-    // Proses register
+    // Proses register - HANYA ADMIN yang bisa akses
     public function registerProcess(Request $request)
     {
+        // Cek jika user adalah admin
+        if (!Auth::check() || Auth::user()->role !== 'admin') {
+            abort(403, 'Unauthorized access');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'role' => 'required|in:user,admin', // pastikan role valid
+            'role' => 'required|in:admin,inputter,user',
             'password' => 'required|confirmed|min:6',
         ]);
 
@@ -56,9 +67,7 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        Auth::login($user);
-
-        return redirect('/dashboard')->with('success', 'Akun berhasil dibuat!');
+        return redirect('/admin/users')->with('success', 'Akun berhasil dibuat!');
     }
 
     // Logout

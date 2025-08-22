@@ -15,20 +15,20 @@ class UserSeeder extends Seeder
                 'name' => 'Admin User',
                 'email' => 'admin@example.com',
                 'role' => 'admin',
-                'password' => Hash::make('password'), // password: "password"
-                'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
             ],
             [
-                'name' => 'Regular User',
-                'email' => 'user@example.com',
-                'role' => 'user',
-                'password' => Hash::make('password'),
-                'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
+                'name' => 'Inputter User',
+                'email' => 'inputter@example.com',
+                'role' => 'inputter',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
             ],
+            [
+                'name' => 'General User',
+                'email' => 'user@example.com',
+                'role' => 'general',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            ]
         ]);
     }
 }
