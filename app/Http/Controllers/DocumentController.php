@@ -48,10 +48,16 @@ class DocumentController extends Controller
             'document_type' => 'required|in:Berita Acara,Resignation Letter,Other Document',
             'description' => 'nullable|string',
             'file' => 'required|file|mimes:pdf,doc,docx,txt|max:10240',
+            'custom_file_name' => 'nullable|string|max:255', // Validasi untuk custom name
         ]);
 
         $file = $request->file('file');
-        $fileName = $file->getClientOriginalName();
+
+        // Gunakan custom name jika ada, jika tidak gunakan nama asli file
+        $fileName = $request->filled('custom_file_name')
+            ? $request->custom_file_name . '.' . $file->getClientOriginalExtension()
+            : $file->getClientOriginalName();
+
         $filePath = $file->storeAs('documents', $fileName, 'public');
 
         $document = Document::create([
@@ -148,16 +154,36 @@ class DocumentController extends Controller
             'document_type' => 'required|in:Berita Acara,Resignation Letter,Other Document',
             'description' => 'nullable|string',
             'file' => 'nullable|file|mimes:pdf,doc,docx,txt|max:10240',
+            'custom_file_name' => 'nullable|string|max:255', // Validasi untuk custom name
         ]);
 
         // Update file jika ada
         if ($request->hasFile('file')) {
             Storage::disk('public')->delete($document->file_path);
             $file = $request->file('file');
-            $document->file_name = $file->getClientOriginalName();
-            $document->file_path = $file->storeAs('documents', $document->file_name, 'public');
+
+            // Gunakan custom name jika ada, jika tidak gunakan nama asli file
+            $fileName = $request->filled('custom_file_name')
+                ? $request->custom_file_name . '.' . $file->getClientOriginalExtension()
+                : $file->getClientOriginalName();
+
+            $document->file_name = $fileName;
+            $document->file_path = $file->storeAs('documents', $fileName, 'public');
             $document->file_size = $file->getSize();
             $document->upload_timestamp = now();
+        } else if ($request->filled('custom_file_name')) {
+            // Jika tidak upload file baru tapi ingin ganti nama file
+            $oldExtension = pathinfo($document->file_name, PATHINFO_EXTENSION);
+            $newFileName = $request->custom_file_name . '.' . $oldExtension;
+
+            // Rename file di storage
+            $newPath = 'documents/' . $newFileName;
+            if (Storage::disk('public')->exists($document->file_path)) {
+                Storage::disk('public')->move($document->file_path, $newPath);
+            }
+
+            $document->file_name = $newFileName;
+            $document->file_path = $newPath;
         }
 
         $documentDetail = $document->documentDetail;
