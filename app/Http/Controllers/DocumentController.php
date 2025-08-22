@@ -7,6 +7,7 @@ use App\Models\DocumentDetail;
 use App\Models\DetailsBeritaAcara;
 use App\Models\DetailsResignLetter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -14,6 +15,11 @@ class DocumentController extends Controller
 {
     public function index(Request $request)
     {
+        // Hanya user yang terautentikasi yang bisa melihat daftar dokumen
+        if (!Auth::check()) {
+            return redirect('/login');
+        }
+
         $query = Document::with(['documentDetail' => function ($q) {
             $q->with(['beritaAcara', 'resignLetter']);
         }]);
@@ -39,11 +45,21 @@ class DocumentController extends Controller
 
     public function create()
     {
+        // Hanya admin dan inputter yang bisa membuat dokumen
+        if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
+            abort(403, 'Unauthorized access');
+        }
+
         return view('documents.create');
     }
 
     public function store(Request $request)
     {
+        // Hanya admin dan inputter yang bisa menyimpan dokumen
+        if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
+            abort(403, 'Unauthorized access');
+        }
+
         $request->validate([
             'document_type' => 'required|in:Berita Acara,Resignation Letter,Other Document',
             'description' => 'nullable|string',
@@ -71,8 +87,18 @@ class DocumentController extends Controller
         $subject = '';
 
         if ($request->document_type === 'Berita Acara') {
+            $request->validate([
+                'berita_acara.nama_pelanggan' => 'required|string|max:255',
+                'berita_acara.lokasi_kerja' => 'required|string|max:255',
+                'berita_acara.jenis_layanan' => 'required|string|max:255',
+                'berita_acara.mo' => 'required|string|max:255',
+                'berita_acara.sid' => 'required|string|max:255',
+                'berita_acara.bw_prev' => 'required|string|max:255',
+                'berita_acara.bw_new' => 'required|string|max:255',
+                'berita_acara.tanggal_mulai' => 'required|date',
+            ]);
+
             $berita = $request->input('berita_acara');
-            // ... validasi ...
 
             $beritaAcara = DetailsBeritaAcara::create([
                 'document_detail_id' => $documentDetail->id,
@@ -90,8 +116,14 @@ class DocumentController extends Controller
         }
 
         if ($request->document_type === 'Resignation Letter') {
+            $request->validate([
+                'resign_letter.employee_name' => 'required|string|max:255',
+                'resign_letter.employee_id' => 'required|string|max:255',
+                'resign_letter.last_day_of_work' => 'required|date',
+                'resign_letter.reason' => 'nullable|string',
+            ]);
+
             $resign = $request->input('resign_letter');
-            // ... validasi ...
 
             $resignLetter = DetailsResignLetter::create([
                 'document_detail_id' => $documentDetail->id,
@@ -114,20 +146,26 @@ class DocumentController extends Controller
 
         return redirect()->route('documents.show', $document->slug)->with('success', 'Document uploaded successfully!');
     }
+
     public function show($slug)
     {
+        // Semua user yang terautentikasi bisa melihat detail dokumen
+        if (!Auth::check()) {
+            return redirect('/login');
+        }
+
         $document = Document::where('slug', $slug)->firstOrFail();
-
-        // Debug 1: cek document
-
-        // Debug 2: cek relasi documentDetail
-        $detail = $document->documentDetail;
 
         return view('documents.show', compact('document'));
     }
 
     public function edit($slug)
     {
+        // Hanya admin dan inputter yang bisa mengedit dokumen
+        if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
+            abort(403, 'Unauthorized access');
+        }
+
         $document = Document::where('slug', $slug)
             ->with([
                 'documentDetail',
@@ -140,6 +178,11 @@ class DocumentController extends Controller
 
     public function update(Request $request, $slug)
     {
+        // Hanya admin dan inputter yang bisa mengupdate dokumen
+        if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
+            abort(403, 'Unauthorized access');
+        }
+
         $document = Document::where('slug', $slug)
             ->with(['documentDetail', 'documentDetail.beritaAcara', 'documentDetail.resignLetter'])
             ->firstOrFail();
@@ -169,8 +212,18 @@ class DocumentController extends Controller
         $subject = '';
 
         if ($request->document_type === 'Berita Acara') {
+            $request->validate([
+                'berita_acara.nama_pelanggan' => 'required|string|max:255',
+                'berita_acara.lokasi_kerja' => 'required|string|max:255',
+                'berita_acara.jenis_layanan' => 'required|string|max:255',
+                'berita_acara.mo' => 'required|string|max:255',
+                'berita_acara.sid' => 'required|string|max:255',
+                'berita_acara.bw_prev' => 'required|string|max:255',
+                'berita_acara.bw_new' => 'required|string|max:255',
+                'berita_acara.tanggal_mulai' => 'required|date',
+            ]);
+
             $berita = $request->input('berita_acara');
-            // ... validasi ...
 
             if ($documentDetail->beritaAcara) {
                 $documentDetail->beritaAcara->update($berita);
@@ -184,8 +237,14 @@ class DocumentController extends Controller
         }
 
         if ($request->document_type === 'Resignation Letter') {
+            $request->validate([
+                'resign_letter.employee_name' => 'required|string|max:255',
+                'resign_letter.employee_id' => 'required|string|max:255',
+                'resign_letter.last_day_of_work' => 'required|date',
+                'resign_letter.reason' => 'nullable|string',
+            ]);
+
             $resign = $request->input('resign_letter');
-            // ... validasi ...
 
             if ($documentDetail->resignLetter) {
                 $documentDetail->resignLetter->update($resign);
@@ -210,6 +269,11 @@ class DocumentController extends Controller
 
     public function destroy($id)
     {
+        // Hanya admin dan inputter yang bisa menghapus dokumen
+        if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
+            abort(403, 'Unauthorized access');
+        }
+
         $document = Document::findOrFail($id);
         Storage::disk('public')->delete($document->file_path);
         $document->delete();
