@@ -50,18 +50,20 @@ if (!function_exists('filterOptions')) {
         if (!empty($validYears)) {
             $query->where(function ($q) use ($validYears) {
                 foreach ($validYears as $yr) {
-                    $q->orWhereRaw('SUBSTRING(CAST(periode AS TEXT), 1, 4) = ?', [$yr]);
+                    $q->orWhereRaw('SUBSTRING(periode, 1, 4) = ?', [$yr]);
                 }
             });
         }
 
         // Filter by month (periode: YYYYMM)
         $months = $parseCsv($month);
-        $validMonths = array_values(array_filter($months, fn($m) => $m !== 'All' && preg_match('/^\d{2}$/', $m)));
+        $validMonths = array_values(array_filter($months, fn($m) => $m !== 'All' && preg_match('/^\d{1,2}$/', $m)));
         if (!empty($validMonths)) {
             $query->where(function ($q) use ($validMonths) {
                 foreach ($validMonths as $mo) {
-                    $q->orWhereRaw('SUBSTRING(CAST(periode AS TEXT), 5, 2) = ?', [$mo]);
+                    // Format bulan menjadi 2 digit (01, 02, ..., 12)
+                    $formattedMonth = str_pad($mo, 2, '0', STR_PAD_LEFT);
+                    $q->orWhereRaw('SUBSTRING(periode, 5, 2) = ?', [$formattedMonth]);
                 }
             });
         }
@@ -77,8 +79,11 @@ if (!function_exists('filterOptions')) {
 
         $filterOptions = [];
         foreach ($filterFields as $column => $key) {
-            $values = TargetsOgd::distinct()
+            $values = TargetsOgd::select($column)
+                ->distinct()
                 ->orderBy($column)
+                ->whereNotNull($column)
+                ->where($column, '!=', '')
                 ->pluck($column)
                 ->filter()
                 ->values()
@@ -88,14 +93,28 @@ if (!function_exists('filterOptions')) {
         }
 
         // Get unique years from periode
-        $yearsFromDb = TargetsOgd::selectRaw('DISTINCT SUBSTRING(CAST(periode AS TEXT), 1, 4) as year')
+        $yearsFromDb = TargetsOgd::selectRaw('DISTINCT SUBSTRING(periode, 1, 4) as year')
+            ->whereNotNull('periode')
+            ->where('periode', '!=', '')
+            ->orderBy('year')
             ->pluck('year')
             ->filter()
-            ->sort()
             ->values()
             ->all();
 
         $filterOptions['years'] = array_merge(['All Years'], $yearsFromDb);
+
+        // Get unique months (optional - jika ingin menampilkan pilihan bulan)
+        $monthsFromDb = TargetsOgd::selectRaw('DISTINCT SUBSTRING(periode, 5, 2) as month')
+            ->whereNotNull('periode')
+            ->where('periode', '!=', '')
+            ->orderBy('month')
+            ->pluck('month')
+            ->filter()
+            ->values()
+            ->all();
+
+        $filterOptions['months'] = array_merge(['All Months'], $monthsFromDb);
 
         return $filterOptions;
     }
