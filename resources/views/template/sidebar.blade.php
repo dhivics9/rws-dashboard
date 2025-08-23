@@ -20,14 +20,17 @@
 
         /* Active Link - Main Menu */
         .nav-link.active {
-            background-color: #059669; /* bg-emerald-600 */
+            background-color: #059669;
+            /* bg-emerald-600 */
             color: white !important;
         }
 
         /* Active Link in Dropdown */
         .nav-link.active-dropdown {
-            color: #34d399 !important; /* text-emerald-400 */
-            background-color: #334155 !important; /* bg-slate-700 */
+            color: #34d399 !important;
+            /* text-emerald-400 */
+            background-color: #334155 !important;
+            /* bg-slate-700 */
             font-weight: 500;
         }
 
@@ -40,10 +43,17 @@
 
     <!-- Logo & Brand -->
     <div class="p-6 flex flex-col items-center">
-        <img src="https://via.placeholder.com/100" alt="Wholphin Logo" class="rounded-full mb-3 w-25 h-25 object-cover" />
+        <img src="/logo.jpg" alt="Wholphin Logo" class="rounded-full mb-3 w-25 h-25 object-cover" />
         <h1 class="text-xl font-bold">WHOLPHIN</h1>
         <p class="text-xs text-gray-300">Wholesale Performance Insight</p>
+
+        <!-- Selamat Datang, User -->
+        <div class="mt-4 text-sm text-center">
+            <p class="text-white font-medium">Selamat datang,</p>
+            <p class="text-emerald-400">{{ auth()->user()->name ?? 'User' }}</p>
+        </div>
     </div>
+
 
     <!-- Navigation -->
     <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
@@ -147,8 +157,7 @@
             <!-- CSRF Token (jika digunakan) -->
             <!-- <input type="hidden" name="_token" value="YOUR_CSRF_TOKEN"> -->
         </form>
-        <button
-            class="w-full flex items-center justify-center p-2 rounded-lg bg-slate-700 hover:bg-red-600 transition"
+        <button class="w-full flex items-center justify-center p-2 rounded-lg bg-slate-700 hover:bg-red-600 transition"
             onclick="handleLogout()">
             <i class="fas fa-sign-out-alt text-gray-300"></i>
             <span class="ml-2 text-gray-300">Logout</span>
@@ -183,7 +192,7 @@
     }
 
     // Saat halaman dimuat: deteksi halaman aktif dan buka dropdown jika perlu
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Normalisasi path (hilangkan trailing slash)
         const currentPath = window.location.pathname.replace(/\/$/, "") || "/";
 
