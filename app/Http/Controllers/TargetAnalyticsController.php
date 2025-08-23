@@ -127,11 +127,24 @@ class TargetAnalyticsController extends Controller
             'real_ytd' => $results->sum('real_ytd'),
             'ach_ytd' => $results->sum('tgt_ytd') == 0 ? 0 : ($results->sum('real_ytd') / $results->sum('tgt_ytd')) * 100,
         ];
-        $total['ach_ytd'] = round($total['ach_ytd'], 2);
 
+        $total['ach_ytd'] = round($total['ach_ytd'], 2);
+        // Hitung total
+        $total = [
+            'tgt_mtd'  => $results->sum('tgt_mtd'),
+            'real_mtd' => $results->sum('real_mtd'),
+            'ach_mtd'  => $results->sum('tgt_mtd') == 0 ? 0 : ($results->sum('real_mtd') / $results->sum('tgt_mtd')) * 100,
+
+            'tgt_ytd'  => $results->sum('tgt_ytd'),
+            'real_ytd' => $results->sum('real_ytd'),
+            'ach_ytd'  => $results->sum('tgt_ytd') == 0 ? 0 : ($results->sum('real_ytd') / $results->sum('tgt_ytd')) * 100,
+        ];
+
+        // Bulatkan ke 2 angka desimal
+        $total['ach_mtd'] = round($total['ach_mtd'], 2);
+        $total['ach_ytd'] = round($total['ach_ytd'], 2);
         // Format YYYY-MM untuk view
         $selectedPeriod = sprintf('%04d-%02d', $year, $month);
-
         // Kirim ke view
         return view('target_analytics.regional_performance', compact('results', 'total', 'selectedPeriod'));
     }

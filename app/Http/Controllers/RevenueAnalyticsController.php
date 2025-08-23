@@ -71,6 +71,7 @@ class RevenueAnalyticsController extends Controller
             ->paginate($request->query('limit', 10))
             ->appends($request->except('page')); // Pertahankan semua query kecuali page
 
+
         return view('revenue_analytics.revenue_data', compact('tableData', 'selectedPeriod', 'filterOptions'));
     }
 

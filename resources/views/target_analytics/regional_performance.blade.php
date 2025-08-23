@@ -1,7 +1,6 @@
 @extends('template.conf')
 
 @section('content')
-
     <!-- Header -->
     <h1 class="text-2xl font-bold text-gray-900 mb-8">Revenue Performance – Per Regional (OGD)</h1>
 
@@ -48,7 +47,7 @@
                         {{ $selectedPeriod ?? '2025-08' }}</th>
                 </tr>
                 <tr class="bg-dark-blue text-white text-xs uppercase tracking-wider">
-                    <th class="px-4 py-2 border  text-center">TGT</th>
+                    <th class="px-4 py-2 border border-dark-blue text-center">TGT</th>
                     <th class="px-4 py-2 border border-dark-blue text-center">REAL</th>
                     <th class="px-4 py-2 border border-dark-blue text-center">ACH</th>
                     <th class="px-4 py-2 border border-dark-blue text-center">RANK</th>
@@ -85,16 +84,41 @@
                 <!-- Baris Total -->
                 <tr class="bg-light-gray font-medium">
                     <td class="px-4 py-3 border border-light-gray text-dark-blue">TOTAL</td>
-                    <td class="px-4 py-3 text-right border border-light-gray">0</td>
-                    <td class="px-4 py-3 text-right border border-light-gray">0</td>
-                    <td class="px-4 py-3 text-right border border-light-gray">0.00%</td>
-                    <td class="px-4 py-3 text-center border border-light-gray">–</td>
+
+                    <!-- MTD Target -->
                     <td class="px-4 py-3 text-right border border-light-gray">
-                        {{ number_format($total['tgt_ytd'], 2, ',', '.') }}</td>
-                    <td class="px-4 py-3 text-right border border-light-gray">
-                        {{ number_format($total['real_ytd'], 2, ',', '.') }}</td>
-                    <td class="px-4 py-3 text-right border border-light-gray">{{ number_format($total['ach_ytd'], 2) }}%
+                        {{ number_format($total['tgt_mtd'], 2, ',', '.') }}
                     </td>
+
+                    <!-- MTD Realisasi -->
+                    <td class="px-4 py-3 text-right border border-light-gray">
+                        {{ number_format($total['real_mtd'], 2, ',', '.') }}
+                    </td>
+
+                    <!-- MTD Achievement (%) -->
+                    <td class="px-4 py-3 text-right border border-light-gray">
+                        {{ number_format($total['ach_mtd'], 2) }}%
+                    </td>
+
+                    <!-- Rank MTD (tidak ada rank untuk total, jadi tetap –) -->
+                    <td class="px-4 py-3 text-center border border-light-gray">–</td>
+
+                    <!-- YTD Target -->
+                    <td class="px-4 py-3 text-right border border-light-gray">
+                        {{ number_format($total['tgt_ytd'], 2, ',', '.') }}
+                    </td>
+
+                    <!-- YTD Realisasi -->
+                    <td class="px-4 py-3 text-right border border-light-gray">
+                        {{ number_format($total['real_ytd'], 2, ',', '.') }}
+                    </td>
+
+                    <!-- YTD Achievement (%) -->
+                    <td class="px-4 py-3 text-right border border-light-gray">
+                        {{ number_format($total['ach_ytd'], 2) }}%
+                    </td>
+
+                    <!-- Rank YTD (tetap – untuk total) -->
                     <td class="px-4 py-3 text-center border border-light-gray">–</td>
                 </tr>
             </tbody>
