@@ -16,8 +16,14 @@
         </div>
     </div>
 
-    <!-- Filter Regional, Witel, Stream -->
-    @foreach ([['label' => 'Regional', 'name' => 'region', 'options' => $filterOptions['regionals'], 'id' => 'dropdown-regional'], ['label' => 'Witel', 'name' => 'witel', 'options' => $filterOptions['witels'], 'id' => 'dropdown-witel'], ['label' => 'Stream', 'name' => 'stream', 'options' => $filterOptions['streams'], 'id' => 'dropdown-stream']] as $filter)
+    <!-- Filter Regional, Witel, LCCD, Stream, Customer Type -->
+    @foreach ([
+        ['label' => 'Regional', 'name' => 'regional', 'options' => $filterOptions['regionals'], 'id' => 'dropdown-regional'],
+        ['label' => 'Witel', 'name' => 'witel', 'options' => $filterOptions['witels'], 'id' => 'dropdown-witel'],
+        ['label' => 'LCCD', 'name' => 'lccd', 'options' => $filterOptions['lccds'], 'id' => 'dropdown-lccd'],
+        ['label' => 'Stream', 'name' => 'stream', 'options' => $filterOptions['streams'], 'id' => 'dropdown-stream'],
+        ['label' => 'Customer Type', 'name' => 'customer_type', 'options' => $filterOptions['customerTypes'], 'id' => 'dropdown-customer-type']
+    ] as $filter)
         <div class="relative inline-block text-left flex-shrink-0">
             <h1 class="block text-sm font-medium text-gray-700 mb-1">{{ $filter['label'] }}</h1>
 
@@ -102,7 +108,7 @@
         };
 
         // Inisialisasi selections untuk filter
-        @foreach (['region' => 'regionals', 'witel' => 'witels', 'stream' => 'streams'] as $key => $group)
+        @foreach (['regional' => 'regionals', 'witel' => 'witels', 'lccd' => 'lccds', 'stream' => 'streams', 'customer_type' => 'customerTypes'] as $key => $group)
             selections['{{ $key }}'] = urlParams.get('{{ $key }}') ?
                 urlParams.get('{{ $key }}').split(',') : [];
         @endforeach
