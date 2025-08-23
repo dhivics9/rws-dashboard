@@ -24,10 +24,10 @@ class RevenueAnalyticsController extends Controller
         ]);
 
         DB::beginTransaction();
-        // dd("kontol");
+
         try {
             // Kosongkan tabel lama
-            RevenueApi::truncate();
+            RevenueApi::query()->delete();
             $file = $request->file('file');
             $importedCount = 0;
 

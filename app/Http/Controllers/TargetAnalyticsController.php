@@ -251,7 +251,7 @@ class TargetAnalyticsController extends Controller
         return view("target_analytics.product_summary", compact("selectedPeriod", "filterOptions", "report"));
     }
 
-        public function revenueTable(Request $request)
+    public function revenueTable(Request $request)
     {
         // Default periode: bulan ini (YYYYMM)
         $periode = $request->query('periode') ?? now()->format('Ym');
@@ -330,7 +330,7 @@ class TargetAnalyticsController extends Controller
         DB::beginTransaction();
         try {
             // Kosongkan tabel lama
-            TargetsOgd::truncate();
+            TargetsOgd::query()->delete();
 
             $file = $request->file('file');
             $importedCount = 0;

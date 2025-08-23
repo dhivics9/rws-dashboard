@@ -212,7 +212,7 @@ class NcxController extends Controller
         DB::beginTransaction();
         try {
             // Kosongkan tabel lama
-            NcxApi::truncate();
+            NcxApi::query()->delete();
 
             $file = $request->file('file');
             $importedCount = 0;
