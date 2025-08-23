@@ -7,9 +7,6 @@
     <!-- Title Table -->
     <div class="flex justify-between items-center mb-6">
         @include('atoms.filter')
-        {{-- <h2 class="text-lg font-semibold text-gray-800 uppercase tracking-wide" id="report-title">
-            Report Revenue – sssssss Product (Periode: {{ $selectedPeriod }})
-        </h2> --}}
         <div class="flex space-x-2">
             <button onclick="exportToExcel()"
                 class="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md transition duration-150">Excel</button>
@@ -45,6 +42,11 @@
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
+                @php
+                    $grandTotalTarget = 0;
+                    $grandTotalRevenue = 0;
+                @endphp
+
                 @forelse ($report as $product)
                     @php
                         $slug = \Illuminate\Support\Str::slug($product['product_name']);
@@ -60,6 +62,10 @@
                                 : ($achievement >= 80
                                     ? 'text-yellow-600'
                                     : 'text-red-600');
+
+                        // Add to grand totals
+                        $grandTotalTarget += $product['total_target'];
+                        $grandTotalRevenue += $product['total_revenue'];
                     @endphp
 
                     <!-- Baris Produk (Expandable) -->
@@ -121,6 +127,27 @@
                         <td colspan="5" class="px-6 py-4 text-center text-gray-500">Tidak ada data tersedia.</td>
                     </tr>
                 @endforelse
+
+                <!-- Grand Total Row -->
+                @if(count($report) > 0)
+                    @php
+                        $grandAchievement = $grandTotalTarget > 0 ? ($grandTotalRevenue / $grandTotalTarget) * 100 : 0;
+                        $grandAchievementColor = $grandAchievement >= 100
+                            ? 'text-green-600'
+                            : ($grandAchievement >= 80
+                                ? 'text-yellow-600'
+                                : 'text-red-600');
+                    @endphp
+                    <tr class="bg-gray-100 font-bold">
+                        <td class="px-6 py-4 whitespace-nowrap">Grand Total</td>
+                        <td class="px-6 py-4 whitespace-nowrap"></td>
+                        <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($grandTotalTarget, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">Rp {{ number_format($grandTotalRevenue, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap {{ $grandAchievementColor }}">
+                            {{ number_format($grandAchievement, 2) }}%
+                        </td>
+                    </tr>
+                @endif
             </tbody>
         </table>
     </div>
@@ -206,6 +233,9 @@
 
             // Loop semua baris di tabel
             Array.from(table.querySelectorAll('tbody tr')).forEach(tr => {
+                // Skip the grand total row for now, we'll add it separately
+                if (tr.classList.contains('bg-gray-100')) return;
+
                 const cells = Array.from(tr.children);
                 const rowData = [];
 
@@ -247,6 +277,55 @@
 
                 worksheetData.push(rowData);
             });
+
+            // Add grand total row
+            const grandTotalRow = table.querySelector('tr.bg-gray-100');
+            if (grandTotalRow) {
+                const cells = Array.from(grandTotalRow.children);
+                const rowData = [];
+
+                cells.forEach((cell, index) => {
+                    let text = cell.textContent.trim();
+
+                    // Kolom Target & Revenue: bersihkan dari "Rp" dan titik, jadikan angka
+                    if ((index === 2 || index === 3) && text) {
+                        const num = parseFloat(text.replace(/[^\d.-]/g, '')) || 0;
+                        rowData.push({
+                            v: num,
+                            t: 'n',
+                            z: '#,##0'
+                        });
+                    }
+                    // Kolom Achievement: ambil angka persen
+                    else if (index === 4 && text.includes('%')) {
+                        const num = parseFloat(text.replace(/[^\d.-]/g, '')) || 0;
+                        rowData.push({
+                            v: num / 100,
+                            t: 'n',
+                            z: '0.00%'
+                        });
+                    }
+                    // Lainnya: teks biasa
+                    else {
+                        rowData.push({
+                            v: text,
+                            t: 's'
+                        });
+                    }
+                });
+
+                worksheetData.push(rowData);
+
+                // Apply bold style to grand total row
+                for (let i = 0; i < 5; i++) {
+                    const cell = XLSX.utils.encode_cell({
+                        r: worksheetData.length - 1,
+                        c: i
+                    });
+                    if (!ws[cell]) ws[cell] = { t: 's' };
+                    ws[cell].s = { font: { bold: true } };
+                }
+            }
 
             // Buat worksheet
             const ws = XLSX.utils.aoa_to_sheet(worksheetData);
