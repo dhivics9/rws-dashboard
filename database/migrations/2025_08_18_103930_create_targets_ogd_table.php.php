@@ -10,22 +10,22 @@ return new class extends Migration
     {
         Schema::create('targets_ogd', function (Blueprint $table) {
             $table->integer('id')->autoIncrement();
-            $table->text('regional')->nullable();
-            $table->text('witel')->nullable();
-            $table->text('lccd')->nullable();
-            $table->text('stream')->nullable();
-            $table->text('product_name')->nullable();
-            $table->text('gl_account')->nullable();
-            $table->text('bp_number')->nullable();
-            $table->text('customer_name')->nullable();
-            $table->text('customer_type')->nullable();
+            $table->string('regional', 255)->nullable();     // changed from text to string
+            $table->string('witel', 255)->nullable();        // changed
+            $table->string('lccd', 255)->nullable();         // changed
+            $table->string('stream', 255)->nullable();       // changed
+            $table->string('product_name', 255)->nullable(); // changed
+            $table->string('gl_account', 255)->nullable();   // changed
+            $table->string('bp_number', 255)->nullable();    // changed
+            $table->string('customer_name', 255)->nullable(); // changed
+            $table->string('customer_type', 50)->nullable(); // changed, adjust length as needed
             $table->decimal('target', 19, 2)->nullable();
             $table->decimal('revenue', 19, 2)->nullable();
             $table->integer('periode');
             $table->decimal('target_rkapp', 19, 2)->nullable();
         });
 
-        // Indexes
+        // Now safely create indexes
         Schema::table('targets_ogd', function (Blueprint $table) {
             $table->index('periode', 'idx_targets_periode');
             $table->index('witel', 'idx_targets_witel');

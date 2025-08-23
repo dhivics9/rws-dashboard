@@ -38,11 +38,13 @@ return new class extends Migration
             $table->text('billing_activation_status')->nullable();
             $table->timestampTz('billcomp_date')->nullable();
             $table->timestampTz('li_milestone_date')->nullable();
-            $table->text('witel')->nullable();
+
+            // Change `text` to `varchar` for indexable fields
+            $table->string('witel', 255)->nullable(); // changed from text to varchar(255)
             $table->text('bw')->nullable();
         });
 
-        // Index
+        // Now you can safely add the index
         Schema::table('ncx_api', function (Blueprint $table) {
             $table->index('witel', 'idx_ncx_witel');
         });
