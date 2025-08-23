@@ -17,8 +17,10 @@ return new class extends Migration
             $table->string('file_name');
             $table->string('file_path');
             $table->integer('file_size');
+            $table->unsignedBigInteger('uploaded_by')->nullable(false);
             $table->dateTime('upload_timestamp');
-            $table->timestamps(); // Jika ingin pakai timestamps, bisa diaktifkan
+            $table->timestamps();
+            $table->foreign('uploaded_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

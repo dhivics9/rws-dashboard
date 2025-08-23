@@ -15,37 +15,37 @@ class DocumentController extends Controller
 {
     public function index(Request $request)
     {
-        // Hanya user yang terautentikasi yang bisa melihat daftar dokumen
         if (!Auth::check()) {
             return redirect('/login');
         }
 
         $query = Document::with(['documentDetail' => function ($q) {
             $q->with(['beritaAcara', 'resignLetter']);
-        }]);
+        }, 'user']); // Tambahkan relasi user
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('documentDetail', function ($q) use ($search) {
-                $q->where('document_type', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('file_name', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
-        if ($request->filled('type')) {
+        if ($request->filled('type') && $request->type != 'all') {
             $query->whereHas('documentDetail', function ($q) use ($request) {
                 $q->where('document_type', $request->type);
             });
         }
 
-        $documents = $query->paginate(10);
+        $documents = $query->orderBy('upload_timestamp', 'desc')->paginate(10);
 
         return view('documents.index', compact('documents'));
     }
 
     public function create()
     {
-        // Hanya admin dan inputter yang bisa membuat dokumen
         if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
             abort(403, 'Unauthorized access');
         }
@@ -55,7 +55,6 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
-        // Hanya admin dan inputter yang bisa menyimpan dokumen
         if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
             abort(403, 'Unauthorized access');
         }
@@ -64,12 +63,11 @@ class DocumentController extends Controller
             'document_type' => 'required|in:Berita Acara,Resignation Letter,Other Document',
             'description' => 'nullable|string',
             'file' => 'required|file|mimes:pdf,doc,docx,txt|max:10240',
-            'custom_file_name' => 'nullable|string|max:255', // Validasi untuk custom name
+            'custom_file_name' => 'nullable|string|max:255',
         ]);
 
         $file = $request->file('file');
 
-        // Gunakan custom name jika ada, jika tidak gunakan nama asli file
         $fileName = $request->filled('custom_file_name')
             ? $request->custom_file_name . '.' . $file->getClientOriginalExtension()
             : $file->getClientOriginalName();
@@ -81,7 +79,8 @@ class DocumentController extends Controller
             'file_path' => $filePath,
             'file_size' => $file->getSize(),
             'upload_timestamp' => now(),
-            'slug' => null, // akan diisi nanti
+            'uploaded_by' => Auth::id(), // Tambahkan user ID yang mengupload
+            'slug' => null,
         ]);
 
         $documentDetail = DocumentDetail::create([
@@ -142,10 +141,7 @@ class DocumentController extends Controller
             $subject = $resign['employee_name'];
         }
 
-        // Sekarang set slug dari subject
         $slug = Str::slug($subject);
-
-        // Cek duplikat
         $count = Document::where('slug', 'like', "{$slug}%")->count();
         $document->slug = $count ? "{$slug}-{$count}" : $slug;
         $document->save();
@@ -155,19 +151,17 @@ class DocumentController extends Controller
 
     public function show($slug)
     {
-        // Semua user yang terautentikasi bisa melihat detail dokumen
         if (!Auth::check()) {
             return redirect('/login');
         }
 
-        $document = Document::where('slug', $slug)->firstOrFail();
+        $document = Document::with('user')->where('slug', $slug)->firstOrFail();
 
         return view('documents.show', compact('document'));
     }
 
     public function edit($slug)
     {
-        // Hanya admin dan inputter yang bisa mengedit dokumen
         if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
             abort(403, 'Unauthorized access');
         }
@@ -176,7 +170,8 @@ class DocumentController extends Controller
             ->with([
                 'documentDetail',
                 'documentDetail.beritaAcara',
-                'documentDetail.resignLetter'
+                'documentDetail.resignLetter',
+                'user' // Tambahkan relasi user
             ])->firstOrFail();
 
         return view('documents.edit', compact('document'));
@@ -184,7 +179,6 @@ class DocumentController extends Controller
 
     public function update(Request $request, $slug)
     {
-        // Hanya admin dan inputter yang bisa mengupdate dokumen
         if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
             abort(403, 'Unauthorized access');
         }
@@ -197,15 +191,13 @@ class DocumentController extends Controller
             'document_type' => 'required|in:Berita Acara,Resignation Letter,Other Document',
             'description' => 'nullable|string',
             'file' => 'nullable|file|mimes:pdf,doc,docx,txt|max:10240',
-            'custom_file_name' => 'nullable|string|max:255', // Validasi untuk custom name
+            'custom_file_name' => 'nullable|string|max:255',
         ]);
 
-        // Update file jika ada
         if ($request->hasFile('file')) {
             Storage::disk('public')->delete($document->file_path);
             $file = $request->file('file');
 
-            // Gunakan custom name jika ada, jika tidak gunakan nama asli file
             $fileName = $request->filled('custom_file_name')
                 ? $request->custom_file_name . '.' . $file->getClientOriginalExtension()
                 : $file->getClientOriginalName();
@@ -215,11 +207,9 @@ class DocumentController extends Controller
             $document->file_size = $file->getSize();
             $document->upload_timestamp = now();
         } else if ($request->filled('custom_file_name')) {
-            // Jika tidak upload file baru tapi ingin ganti nama file
             $oldExtension = pathinfo($document->file_name, PATHINFO_EXTENSION);
             $newFileName = $request->custom_file_name . '.' . $oldExtension;
 
-            // Rename file di storage
             $newPath = 'documents/' . $newFileName;
             if (Storage::disk('public')->exists($document->file_path)) {
                 Storage::disk('public')->move($document->file_path, $newPath);
@@ -283,7 +273,6 @@ class DocumentController extends Controller
             $documentDetail->resignLetter?->delete();
         }
 
-        // Update slug dari subject utama
         $slug = Str::slug($subject);
         $count = Document::where('slug', 'like', "{$slug}%")->where('id', '!=', $document->id)->count();
         $document->slug = $count ? "{$slug}-{$count}" : $slug;
@@ -295,7 +284,6 @@ class DocumentController extends Controller
 
     public function destroy($id)
     {
-        // Hanya admin dan inputter yang bisa menghapus dokumen
         if (!in_array(Auth::user()->role, ['admin', 'inputter'])) {
             abort(403, 'Unauthorized access');
         }

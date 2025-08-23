@@ -14,6 +14,7 @@
             <div class="bg-white p-5 rounded-lg shadow mb-6">
                 <p><strong>Document Type:</strong> {{ $document->documentDetail->document_type }}</p>
                 <p><strong>Description:</strong> {{ $document->documentDetail->description ?? '-' }}</p>
+                <p><strong>Uploaded By:</strong> {{ $document->user->name ?? 'Unknown' }}</p>
                 <p><strong>Uploaded On:</strong> {{ $document->upload_timestamp->format('m/d/Y, H:i A') }}</p>
             </div>
 
