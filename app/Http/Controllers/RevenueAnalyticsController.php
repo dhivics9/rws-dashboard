@@ -75,7 +75,7 @@ class RevenueAnalyticsController extends Controller
                 }
 
                 foreach ($jsonData as $item) {
-                    if (!isset($item['Periode'])) continue; // skip jika tidak valid
+                    // if (!isset($item['Periode'])) continue; // skip jika tidak valid
 
                     $data = [
                         'periode'             => (int)($item['Periode'] ?? ''),
