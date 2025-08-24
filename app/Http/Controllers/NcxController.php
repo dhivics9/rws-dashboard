@@ -206,7 +206,7 @@ class NcxController extends Controller
     public function postImport(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240'
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt,json|max:20480' // tambah json, ukuran lebih besar
         ]);
 
         DB::beginTransaction();
@@ -217,55 +217,108 @@ class NcxController extends Controller
             $file = $request->file('file');
             $importedCount = 0;
 
-            // Baca isi Excel
-            $rows = Excel::toArray([], $file);
-            $dataRows = $rows[0]; // Ambil sheet pertama
+            $extension = $file->getClientOriginalExtension();
 
-            // Buang header (baris pertama)
-            array_shift($dataRows);
+            // --- 1. Jika Excel/CSV ---
+            if (in_array($extension, ['xlsx', 'xls', 'csv', 'txt'])) {
+                $rows = Excel::toArray([], $file);
+                $dataRows = $rows[0];
+                array_shift($dataRows); // buang header
 
-            foreach ($dataRows as $row) {
-                // Skip baris kosong
-                if (empty(array_filter($row))) {
-                    continue;
+                foreach ($dataRows as $row) {
+                    if (empty(array_filter($row))) continue;
+
+                    $data = [
+                        'li_product_name'             => $this->cleanData($row[0] ?? ''),
+                        'ca_account_name'             => $this->cleanData($row[1] ?? ''),
+                        'order_id'                    => $this->cleanData($row[2] ?? ''),
+                        'li_sid'                      => $this->cleanData($row[3] ?? ''),
+                        'quote_subtype'               => $this->cleanData($row[4] ?? ''),
+                        'sa_x_addr_city'              => $this->cleanData($row[5] ?? ''),
+                        'sa_x_addr_latitude'          => $this->parseDouble($row[6] ?? null),
+                        'sa_x_addr_latitude2'         => $this->parseDouble($row[7] ?? null),
+                        'sa_x_addr_longlitude'        => $this->parseDouble($row[8] ?? null),
+                        'sa_x_addr_longlitude2'       => $this->parseDouble($row[9] ?? null),
+                        'billing_type_cd'             => $this->cleanData($row[10] ?? ''),
+                        'price_type_cd'               => $this->cleanData($row[11] ?? ''),
+                        'x_mrc_tot_net_pri'           => $this->parseNumber($row[12] ?? 0),
+                        'x_nrc_tot_net_pri'           => $this->parseNumber($row[13] ?? 0),
+                        'quote_createdby_name'        => $this->cleanData($row[14] ?? ''),
+                        'agree_num'                   => $this->cleanData($row[15] ?? ''),
+                        'agree_type'                  => $this->cleanData($row[16] ?? ''),
+                        'agree_end_date'              => $this->parseDateTime($row[17] ?? null),
+                        'agree_status'                => $this->cleanData($row[18] ?? ''),
+                        'li_milestone'                => $this->cleanData($row[19] ?? ''),
+                        'order_created_date'          => $this->parseDateTime($row[20] ?? null),
+                        'sa_witel'                    => $this->cleanData($row[21] ?? ''),
+                        'sa_account_status'           => $this->cleanData($row[22] ?? ''),
+                        'sa_account_address_name'     => $this->cleanData($row[23] ?? ''),
+                        'billing_activation_date'     => $this->parseDateTime($row[24] ?? null),
+                        'billing_activation_status'   => $this->cleanData($row[25] ?? ''),
+                        'billcomp_date'               => $this->parseDateTime($row[26] ?? null),
+                        'li_milestone_date'           => $this->parseDateTime($row[27] ?? null),
+                        'witel'                       => $this->cleanData($row[28] ?? ''),
+                        'bw'                          => $this->cleanData($row[29] ?? ''),
+                    ];
+
+                    NcxApi::create($data);
+                    $importedCount++;
+                }
+            } elseif ($extension === 'json') {
+                // Proses JSON
+                $jsonContent = file_get_contents($file->getRealPath());
+                $jsonData = json_decode($jsonContent, true);
+
+                // Jika JSON tidak valid
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new \Exception('Invalid JSON: ' . json_last_error_msg());
                 }
 
-                // Mapping data dari Excel ke kolom database
-                $data = [
-                    'li_product_name'             => $this->cleanData($row[0] ?? ''),
-                    'ca_account_name'             => $this->cleanData($row[1] ?? ''),
-                    'order_id'                    => $this->cleanData($row[2] ?? ''),
-                    'li_sid'                      => $this->cleanData($row[3] ?? ''),
-                    'quote_subtype'               => $this->cleanData($row[4] ?? ''),
-                    'sa_x_addr_city'              => $this->cleanData($row[5] ?? ''),
-                    'sa_x_addr_latitude'          => $this->parseDouble($row[6] ?? null),
-                    'sa_x_addr_latitude2'         => $this->parseDouble($row[7] ?? null),
-                    'sa_x_addr_longlitude'        => $this->parseDouble($row[8] ?? null), // typo: longlitude
-                    'sa_x_addr_longlitude2'       => $this->parseDouble($row[9] ?? null),
-                    'billing_type_cd'             => $this->cleanData($row[10] ?? ''),
-                    'price_type_cd'               => $this->cleanData($row[11] ?? ''),
-                    'x_mrc_tot_net_pri'           => $this->parseNumber($row[12] ?? 0),
-                    'x_nrc_tot_net_pri'           => $this->parseNumber($row[13] ?? 0),
-                    'quote_createdby_name'        => $this->cleanData($row[14] ?? ''),
-                    'agree_num'                   => $this->cleanData($row[15] ?? ''),
-                    'agree_type'                  => $this->cleanData($row[16] ?? ''),
-                    'agree_end_date'              => $this->parseDateTime($row[17] ?? null),
-                    'agree_status'                => $this->cleanData($row[18] ?? ''),
-                    'li_milestone'                => $this->cleanData($row[19] ?? ''),
-                    'order_created_date'          => $this->parseDateTime($row[20] ?? null),
-                    'sa_witel'                    => $this->cleanData($row[21] ?? ''),
-                    'sa_account_status'           => $this->cleanData($row[22] ?? ''),
-                    'sa_account_address_name'     => $this->cleanData($row[23] ?? ''),
-                    'billing_activation_date'     => $this->parseDateTime($row[24] ?? null),
-                    'billing_activation_status'   => $this->cleanData($row[25] ?? ''),
-                    'billcomp_date'               => $this->parseDateTime($row[26] ?? null),
-                    'li_milestone_date'           => $this->parseDateTime($row[27] ?? null),
-                    'witel'                       => $this->cleanData($row[28] ?? ''),
-                    'bw'                          => $this->cleanData($row[29] ?? ''),
-                ];
+                // Pastikan data adalah array
+                if (!is_array($jsonData)) {
+                    $jsonData = [$jsonData]; // jika objek tunggal, jadikan array
+                }
+                foreach ($jsonData as $item) {
+                    // if (!isset($item['Periode'])) continue; // skip jika tidak valid
 
-                NcxApi::create($data);
-                $importedCount++;
+                    $data = [
+                        'li_product_name'             => $this->cleanData($item['LI_PRODUCT_NAME'] ?? null),
+                        'ca_account_name'             => $this->cleanData($item['CA_ACCOUNT_NAME'] ?? null),
+                        'order_id'                    => $this->cleanData($item['ORDER_ID'] ?? null),
+                        'li_sid'                      => $this->cleanData($item['LI_SID'] ?? null),
+                        'quote_subtype'               => $this->cleanData($item['QUOTE_SUBTYPE'] ?? null),
+                        'sa_x_addr_city'              => $this->cleanData($item['SA_X_ADDR_CITY'] ?? null),
+                        'sa_x_addr_latitude'          => $this->parseDouble($item['SA_X_ADDR_LATITUDE'] ?? null),
+                        'sa_x_addr_latitude2'         => $this->parseDouble($item['SA_X_ADDR_LATITUDE2'] ?? null),
+                        'sa_x_addr_longlitude'        => $this->parseDouble($item['SA_X_ADDR_LONGLITUDE'] ?? $item['SA_X_ADDR_LONGLOITUDE'] ?? null), // handle typo
+                        'sa_x_addr_longlitude2'       => $this->parseDouble($item['SA_X_ADDR_LONGLITUDE2'] ?? null),
+                        'billing_type_cd'             => $this->cleanData($item['BILLING_TYPE_CD'] ?? null),
+                        'price_type_cd'               => $this->cleanData($item['PRICE_TYPE_CD'] ?? null),
+                        'x_mrc_tot_net_pri'           => $this->parseNumber($item['X_MRC_TOT_NET_PRI'] ?? 0),
+                        'x_nrc_tot_net_pri'           => $this->parseNumber($item['X_NRC_TOT_NET_PRI'] ?? 0),
+                        'quote_createdby_name'        => $this->cleanData($item['QUOTE_CREATEDBY_NAME'] ?? null),
+                        'agree_num'                   => $this->cleanData($item['AGREE_NUM'] ?? null),
+                        'agree_type'                  => $this->cleanData($item['AGREE_TYPE'] ?? null),
+                        'agree_end_date'              => $this->parseDateTime($item['AGREE_END_DATE'] ?? null),
+                        'agree_status'                => $this->cleanData($item['AGREE_STATUS'] ?? null),
+                        'li_milestone'                => $this->cleanData($item['LI_MILESTONE'] ?? null),
+                        'order_created_date'          => $this->parseDateTime($item['ORDER_CREATED_DATE'] ?? null),
+                        'sa_witel'                    => $this->cleanData($item['SA_WITEL'] ?? null),
+                        'sa_account_status'           => $this->cleanData($item['SA_ACCOUNT_STATUS'] ?? null),
+                        'sa_account_address_name'     => $this->cleanData($item['SA_ACCOUNT_ADDRESS_NAME'] ?? null),
+                        'billing_activation_date'     => $this->parseDateTime($item['BILLING_ACTIVATION_DATE'] ?? null),
+                        'billing_activation_status'   => $this->cleanData($item['BILLING_ACTIVATION_STATUS'] ?? null),
+                        'billcomp_date'               => $this->parseDateTime($item['BILLCOMP_DATE'] ?? null),
+                        'li_milestone_date'           => $this->parseDateTime($item['LI_MILESTONE_DATE'] ?? null),
+                        'witel'                       => $this->cleanData($item['WITEL'] ?? null),
+                        'bw'                          => $this->cleanData($item['BW'] ?? null),
+                    ];
+
+                    NcxApi::create($data);
+                    $importedCount++;
+                }
+            } else {
+                throw new \Exception("Format file tidak didukung: $extension");
             }
 
             DB::commit();

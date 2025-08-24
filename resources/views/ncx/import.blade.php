@@ -3,7 +3,7 @@
 @section('content')
     <div class="bg-gray-100 min-h-screen flex items-center justify-center">
         <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full mx-4 border border-gray-200">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Import Target OGD</h2>
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">Import NCX</h2>
 
             @if (session('success'))
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
@@ -18,7 +18,7 @@
             @endif
 
             <p class="text-gray-600 text-center mb-6">
-                Unggah file Excel atau CSV untuk mengimpor data ke sistem.
+                Unggah file Excel atau CSV atau JSON untuk mengimpor data ke sistem.
             </p>
 
             <!-- Form Upload -->
@@ -36,10 +36,10 @@
                         <span class="mt-2 block text-sm font-medium text-gray-600">
                             Pilih file atau seret ke sini
                         </span>
-                        <span class="text-xs text-gray-500">CSV, XLSX </span>
+                        <span class="text-xs text-gray-500">CSV, XLSX, dan JSON</span>
                     </div>
-                    <input id="file-upload" name="file" type="file" class="sr-only" accept=".csv,.xlsx,.xls" required
-                        onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
+                    <input id="file-upload" name="file" type="file" class="sr-only" accept=".csv,.xlsx,.xls,.json"
+                        required onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
                 </label>
 
                 <!-- Tampilkan nama file -->

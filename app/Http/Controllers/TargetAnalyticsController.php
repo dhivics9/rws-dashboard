@@ -334,39 +334,74 @@ class TargetAnalyticsController extends Controller
 
             $file = $request->file('file');
             $importedCount = 0;
+            $extension = $file->getClientOriginalExtension();
 
-            // Baca isi excel
-            $rows = Excel::toArray([], $file);
-            // $rows[0] = sheet pertama
-            $dataRows = $rows[0];
+            if (in_array($extension, ['xlsx', 'xls', 'csv', 'txt'])) {
+                // Baca isi excel
+                $rows = Excel::toArray([], $file);
+                // $rows[0] = sheet pertama
+                $dataRows = $rows[0];
 
-            // Buang header (baris pertama)
-            array_shift($dataRows);
+                // Buang header (baris pertama)
+                array_shift($dataRows);
 
-            foreach ($dataRows as $row) {
-                // Skip baris kosong
-                if (empty(array_filter($row))) {
-                    continue;
+                foreach ($dataRows as $row) {
+                    // Skip baris kosong
+                    if (empty(array_filter($row))) {
+                        continue;
+                    }
+
+                    $data = [
+                        'regional'      => $this->cleanData($row[0] ?? ''),
+                        'witel'         => $this->cleanData($row[1] ?? ''), // Sama dengan regional
+                        'lccd'          => $this->cleanData($row[2] ?? ''),
+                        'stream'        => $this->cleanData($row[3] ?? ''),
+                        'product_name'  => $this->cleanProductName($row[4] ?? ''),
+                        'gl_account'    => $this->cleanData($row[5] ?? ''),
+                        'bp_number'     => $this->cleanData($row[6] ?? ''),
+                        'customer_name' => $this->cleanData($row[7] ?? ''),
+                        'customer_type' => $this->cleanData($row[8] ?? ''),
+                        'target'        => $this->parseNumber($row[9] ?? 0),
+                        'revenue'       => $this->parseNumber($row[10] ?? 0),
+                        'periode'       => (int)$this->cleanData($row[11] ?? date('Ym')),
+                        'target_rkapp'  => $this->parseNumber($row[12] ?? 0),
+                    ];
+
+                    TargetsOgd::create($data);
+                    $importedCount++;
+                }
+            } elseif ($extension === 'json') {
+                $jsonContent = file_get_contents($file->getRealPath());
+                $jsonData = json_decode($jsonContent, true);
+
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new \Exception('Invalid JSON: ' . json_last_error_msg());
                 }
 
-                $data = [
-                    'regional'      => $this->cleanData($row[0] ?? ''),
-                    'witel'         => $this->cleanData($row[1] ?? ''), // Sama dengan regional
-                    'lccd'          => $this->cleanData($row[2] ?? ''),
-                    'stream'        => $this->cleanData($row[3] ?? ''),
-                    'product_name'  => $this->cleanProductName($row[4] ?? ''),
-                    'gl_account'    => $this->cleanData($row[5] ?? ''),
-                    'bp_number'     => $this->cleanData($row[6] ?? ''),
-                    'customer_name' => $this->cleanData($row[7] ?? ''),
-                    'customer_type' => $this->cleanData($row[8] ?? ''),
-                    'target'        => $this->parseNumber($row[9] ?? 0),
-                    'revenue'       => $this->parseNumber($row[10] ?? 0),
-                    'periode'       => (int)$this->cleanData($row[11] ?? date('Ym')),
-                    'target_rkapp'  => $this->parseNumber($row[12] ?? 0),
-                ];
+                if (!is_array($jsonData)) {
+                    $jsonData = [$jsonData];
+                }
 
-                TargetsOgd::create($data);
-                $importedCount++;
+                foreach ($jsonData as $item) {
+                    $data = [
+                        'regional'      => $this->cleanData($item['regional'] ?? ''),
+                        'witel'         => $this->cleanData($item['witel'] ?? ''),
+                        'lccd'          => $this->cleanData($item['lccd'] ?? ''),
+                        'stream'        => $this->cleanData($item['stream'] ?? ''),
+                        'product_name'  => $this->cleanProductName($item['product_name'] ?? ''),
+                        'gl_account'    => $this->cleanData($item['gl_account'] ?? ''),
+                        'bp_number'     => $this->cleanData($item['bp_number'] ?? ''),
+                        'customer_name' => $this->cleanData($item['customer_name'] ?? ''),
+                        'customer_type' => $this->cleanData($item['customer_type'] ?? ''),
+                        'target'        => $this->parseNumber($item['target'] ?? 0),
+                        'revenue'       => $this->parseNumber($item['revenue'] ?? 0),
+                        'periode'       => (int)($item['periode'] ?? date('Ym')),
+                        'target_rkapp'  => $this->parseNumber($item['target_rkapp'] ?? 0),
+                    ];
+
+                    TargetsOgd::create($data);
+                    $importedCount++;
+                }
             }
 
             DB::commit();

@@ -18,7 +18,7 @@
             @endif
 
             <p class="text-gray-600 text-center mb-6">
-                Unggah file Excel atau CSV untuk mengimpor data ke sistem.
+                Unggah file Excel atau CSV atau JSON untuk mengimpor data ke sistem.
             </p>
 
             <!-- Form Upload -->
@@ -36,10 +36,10 @@
                         <span class="mt-2 block text-sm font-medium text-gray-600">
                             Pilih file atau seret ke sini
                         </span>
-                        <span class="text-xs text-gray-500">CSV, XLSX </span>
+                        <span class="text-xs text-gray-500">CSV, XLSX, dan JSON</span>
                     </div>
-                    <input id="file-upload" name="file" type="file" class="sr-only" accept=".csv,.xlsx,.xls" required
-                        onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
+                    <input id="file-upload" name="file" type="file" class="sr-only" accept=".csv,.xlsx,.xls,.json"
+                        required onchange="document.getElementById('file-name').textContent = this.files[0]?.name || ''" />
                 </label>
 
                 <!-- Tampilkan nama file -->
