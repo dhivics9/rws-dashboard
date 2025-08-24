@@ -88,31 +88,35 @@
                         class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
                         Target Revenue
                     </a>
-                    <a href="/target-analytics/import"
-                        class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
-                        Import Data
-                    </a>
+                    @can('admin', 'inputter')
+                        <a href="/target-analytics/import"
+                            class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
+                            Import Data
+                        </a>
+                    @endcan
                 </div>
             </div>
         </div>
 
         <!-- Revenue Analytics (Dropdown) -->
-        <div class="relative group">
-            <button onclick="toggleDropdown('revenue-analytics')"
-                class="dropdown-btn flex items-center justify-between w-full px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
-                <span class="flex items-center">
-                    <i class="fas fa-chart-line mr-3"></i>
-                    Revenue Analytics
-                </span>
-                <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="revenue-arrow"></i>
-            </button>
-            <div id="revenue-analytics" class="dropdown-content mt-1 space-y-1">
-                <a href="/revenue-analytics/import"
-                    class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
-                    Import Data
-                </a>
+        @can('admin', 'inputter')
+            <div class="relative group">
+                <button onclick="toggleDropdown('revenue-analytics')"
+                    class="dropdown-btn flex items-center justify-between w-full px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
+                    <span class="flex items-center">
+                        <i class="fas fa-chart-line mr-3"></i>
+                        Revenue Analytics
+                    </span>
+                    <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="revenue-arrow"></i>
+                </button>
+                <div id="revenue-analytics" class="dropdown-content mt-1 space-y-1">
+                    <a href="/revenue-analytics/import"
+                        class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
+                        Import Data
+                    </a>
+                </div>
             </div>
-        </div>
+        @endcan
 
         <!-- NCX Status (Dropdown) -->
         <div class="relative group">
@@ -129,10 +133,12 @@
                     class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
                     NCX Status
                 </a>
-                <a href="/ncx/import"
-                    class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
-                    Import Data
-                </a>
+                @can('admin', 'inputter')
+                    <a href="/ncx/import"
+                        class="nav-link block px-8 py-2 text-gray-300 hover:text-emerald-400 hover:bg-slate-700 rounded-md transition">
+                        Import Data
+                    </a>
+                @endcan
             </div>
         </div>
 
@@ -142,7 +148,15 @@
             <i class="fas fa-file-alt mr-3"></i>
             Berkas Dokumen
         </a>
-
+        <!-- Manajemen Pengguna (Admin Only) -->
+        @can('admin')
+            <a href="/users"
+                class="nav-link flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-emerald-600 transition"
+                id="users-link">
+                <i class="fas fa-users-cog mr-3"></i>
+                Manajemen Pengguna
+            </a>
+        @endcan
         <!-- Tools -->
         <a href="/tools"
             class="nav-link flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">

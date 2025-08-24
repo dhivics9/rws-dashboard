@@ -57,3 +57,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
     Route::get('/documents/{slug}', [DocumentController::class, 'show'])->name('documents.show');
 });
+
+// Admin CRUD Users
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::resource('users', \App\Http\Controllers\UserController::class)->except(['show']);
+});
