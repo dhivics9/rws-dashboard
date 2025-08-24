@@ -43,13 +43,13 @@
 
     <!-- Logo & Brand -->
     <div class="p-6 flex flex-col items-center">
-        <img src="/logo.jpg" alt="Wholphin Logo" class="rounded-full mb-3 w-25 h-25 object-cover" />
+        <img src="/logo.jpg" alt="Wholphin Logo" class="rounded-full mb-3 w-20 h-20 object-cover" />
         <h1 class="text-xl font-bold">WHOLPHIN</h1>
         <p class="text-xs text-gray-300">Wholesale Performance Insight</p>
 
         <!-- Selamat Datang, User -->
         <div class="mt-4 text-sm text-center">
-            <p class="text-white font-medium">Selamat datang,</p>
+            <p class="text-white text-lg font-medium">Selamat datang,</p>
             <p class="text-emerald-400">{{ auth()->user()->name ?? 'User' }}</p>
         </div>
     </div>
