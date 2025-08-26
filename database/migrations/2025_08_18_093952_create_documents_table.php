@@ -13,13 +13,14 @@ return new class extends Migration
     {
         Schema::create('documents', function (Blueprint $table) {
             $table->id();
-            $table->string('slug')->nullable(false);
-            $table->string('file_name');
-            $table->string('file_path');
-            $table->integer('file_size');
-            $table->unsignedBigInteger('uploaded_by')->nullable(false);
-            $table->dateTime('upload_timestamp');
+            $table->string('slug')->unique();
+            $table->string('file_name'); // nama file asli atau custom
+            $table->string('file_path'); // path penyimpanan
+            $table->integer('file_size'); // dalam byte
+            $table->unsignedBigInteger('uploaded_by');
+            $table->timestamp('upload_timestamp');
             $table->timestamps();
+
             $table->foreign('uploaded_by')->references('id')->on('users')->onDelete('cascade');
         });
     }
