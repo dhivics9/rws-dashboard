@@ -14,10 +14,6 @@
         <div class="bg-white p-5 rounded-lg shadow mb-6">
             <p><strong>Tipe Dokumen:</strong> {{ $document->documentDetail->tipe_dokumen }}</p>
             <p><strong>Nomor Dokumen:</strong> {{ $document->documentDetail->nomor_dokumen ?? '-' }}</p>
-            <p><strong>BAK:</strong> {{ $document->documentDetail->bak ? 'Ya' : 'Tidak' }}</p>
-            <p><strong>BA:</strong> {{ $document->documentDetail->ba ? 'Ya' : 'Tidak' }}</p>
-            <p><strong>PKS:</strong> {{ $document->documentDetail->pks ? 'Ya' : 'Tidak' }}</p>
-            <p><strong>PO:</strong> {{ $document->documentDetail->po ? 'Ya' : 'Tidak' }}</p>
             <p><strong>Deskripsi:</strong> {{ $document->documentDetail->description ?? '-' }}</p>
             <p><strong>Uploaded By:</strong> {{ $document->user->name ?? 'Unknown' }}</p>
             <p><strong>Uploaded On:</strong> {{ $document->upload_timestamp->format('d/m/Y H:i') }}</p>
