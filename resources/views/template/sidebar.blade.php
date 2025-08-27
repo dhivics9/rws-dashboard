@@ -158,11 +158,15 @@
             </a>
         @endcan
         <!-- Tools -->
-        <a href="/tools"
-            class="nav-link flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-700 transition">
-            <i class="fas fa-wrench mr-3"></i>
-            Tools
-        </a>
+        <!-- Syncronize Data (Admin Only) -->
+        @can('admin')
+            <a href="/syncronize"
+                class="nav-link flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-emerald-600 transition"
+                id="sync-link">
+                <i class="fas fa-sync mr-3"></i>
+                Sinkronisasi Data
+            </a>
+        @endcan
     </nav>
 
     <!-- Footer - Logout -->
