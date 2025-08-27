@@ -8,6 +8,7 @@ use App\Http\Controllers\RevenueAnalyticsController;
 use App\Http\Controllers\TargetAnalyticsController;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SyncController;
 
 Route::get('/', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
@@ -61,4 +62,10 @@ Route::middleware(['auth'])->group(function () {
 // Admin CRUD Users
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('users', \App\Http\Controllers\UserController::class)->except(['show']);
+});
+
+
+Route::prefix('syncronize')->group(function () {
+    Route::get('/', [SyncController::class, 'index'])->name('sync.index');
+    Route::post('/run', [SyncController::class, 'sync'])->name('sync.run');
 });
