@@ -29,7 +29,7 @@
                 <div><strong>Tipe Order:</strong> {{ $document->documentDetail->tipe_order ?? '-' }}</div>
                 <div><strong>SID:</strong> {{ $document->documentDetail->sid ?? '-' }}</div>
                 {{-- @dd( $document->documentDetail->tanggal_mulai) --}}
-                <div><strong>Tanggal Mulai:</strong> {{ $document->documentDetail->tanggal_mulai ?? '-' }}</div>
+                <div><strong>Tanggal:</strong> {{ $document->documentDetail->tanggal_mulai ?? '-' }}</div>
             </dl>
         </div>
 
