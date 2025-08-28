@@ -33,7 +33,6 @@
                 <label class="block text-sm font-medium text-gray-700">Tipe Dokumen</label>
                 <select name="tipe_dokumen" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
                     <option value="">-- Pilih tipe dokumen --</option>
-                    <option value="Berita Acara" {{ old('tipe_dokumen') == 'Berita Acara' ? 'selected' : '' }}>Berita Acara</option>
                     <option value="BAK" {{ old('tipe_dokumen') == 'BAK' ? 'selected' : '' }}>BAK</option>
                     <option value="BA" {{ old('tipe_dokumen') == 'BA' ? 'selected' : '' }}>BA</option>
                     <option value="PKS" {{ old('tipe_dokumen') == 'PKS' ? 'selected' : '' }}>PKS</option>
