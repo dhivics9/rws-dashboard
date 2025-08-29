@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Application Name
@@ -16,7 +15,7 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     'aliases' => [
-        // ...
+        'Str' => Illuminate\Support\Str::class,
         'Excel' => Maatwebsite\Excel\Facades\Excel::class,
     ],
     /*
@@ -130,5 +129,4 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-
 ];

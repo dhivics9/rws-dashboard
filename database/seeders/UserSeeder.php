@@ -15,19 +15,19 @@ class UserSeeder extends Seeder
                 'name' => 'Admin User',
                 'email' => 'admin@example.com',
                 'role' => 'admin',
-                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'password' => Hash::make('admin123456'),
             ],
             [
                 'name' => 'Inputter User',
                 'email' => 'inputter@example.com',
                 'role' => 'inputter',
-                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'password' => Hash::make('inputter123456'),
             ],
             [
                 'name' => 'General User',
                 'email' => 'user@example.com',
                 'role' => 'general',
-                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'password' => Hash::make('user123456'),
             ]
         ]);
     }
