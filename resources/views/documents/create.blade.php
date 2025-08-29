@@ -117,9 +117,9 @@
                 @enderror
             </div>
 
-            <!-- Tanggal Mulai -->
+            <!-- Tanggal -->
             <div class="mb-5">
-                <label class="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                <label class="block text-sm font-medium text-gray-700">Tanggal</label>
                 <input type="date" name="tanggal_mulai" value="{{ old('tanggal_mulai') }}"
                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm">
                 @error('tanggal_mulai')
