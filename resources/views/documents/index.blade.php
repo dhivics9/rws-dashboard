@@ -18,7 +18,6 @@
         </div>
         <select name="type" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
             <option value="all">Semua Tipe Dokumen</option>
-            <option value="Berita Acara" {{ request('type') == 'Berita Acara' ? 'selected' : '' }}>Berita Acara</option>
             <option value="BAK" {{ request('type') == 'BAK' ? 'selected' : '' }}>BAK</option>
             <option value="BA" {{ request('type') == 'BA' ? 'selected' : '' }}>BA</option>
             <option value="PKS" {{ request('type') == 'PKS' ? 'selected' : '' }}>PKS</option>
